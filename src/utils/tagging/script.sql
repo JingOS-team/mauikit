@@ -1,0 +1,58 @@
+CREATE TABLE IF NOT EXISTS USERS (
+mac TEXT PRIMARY KEY,
+name TEXT,
+adddate DATE,
+lastSync DATE,
+device TEXT
+);
+
+CREATE TABLE IF NOT EXISTS APPS (
+app TEXT,
+uri TEXT,
+version TEXT,
+adddate DATE,
+comment TEXT,
+PRIMARY KEY(app, uri)
+);
+
+CREATE TABLE IF NOT EXISTS TAGS (
+tag TEXT,
+app TEXT,
+color TEXT,
+adddate DATE,
+comment TEXT,
+PRIMARY KEY(tag, app)
+FOREIGN KEY(app) REFERENCES APPS(app)
+);
+
+CREATE TABLE IF NOT EXISTS TAGS_USERS (
+tag TEXT,
+mac TEXT,
+PRIMARY KEY(tag, mac),
+FOREIGN KEY(tag) REFERENCES TAGS(tag),
+FOREIGN KEY(mac) REFERENCES USERS(mac)
+);
+
+CREATE TABLE IF NOT EXISTS TAGS_URLS (
+url TEXT,
+tag TEXT,
+title TEXT,
+comment TEXT,
+mime TEXT,
+adddate DATE,
+PRIMARY KEY(url, tag),
+FOREIGN KEY(tag) REFERENCES TAGS(tag)
+);
+
+CREATE TABLE IF NOT EXISTS APPS_USERS (
+mac TEXT,
+app TEXT,
+uri TEXT,
+adddate DATE,
+PRIMARY KEY(mac, app, uri),
+FOREIGN KEY(mac) REFERENCES USERS(mac),
+FOREIGN KEY(app) REFERENCES APPS(app),
+FOREIGN KEY(uri) REFERENCES APPS(uri)
+);
+
+COMMIT;

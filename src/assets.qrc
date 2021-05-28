@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>assets/maui-app.colors</file>
+        <file>assets/mauikit-logo.png</file>
+        <file>assets/application-x-zerosize.svg</file>
+        <file>assets/opendesktop.png</file>
+        <file>assets/folder-add.svg</file>
+        <file>assets/view-refresh.svg</file>
+        <file>assets/edit-find.svg</file>
+        <file>assets/dialog-information.svg</file>
+        <file>assets/cover.png</file>
+    </qresource>
+</RCC>
