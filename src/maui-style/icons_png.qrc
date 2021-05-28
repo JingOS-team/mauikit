@@ -1,0 +1,42 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/luv-icon-theme/Luv/index.theme</file>
+        <file>icons/luv-icon-theme/Luv/LICENSE</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/znx-gui.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/vvave.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/vlc.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/utilities-text-editor.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/utilities-terminal.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/systemback.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/system-file-manager.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/steam.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/spotify-client.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/qtlogo.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/qtdesigner.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/qtcreator.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/preferences-system.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/nx-software-updater.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/nx-software-center.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/maui-buho.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/libreoffice-writer.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/libreoffice-startcenter.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/libreoffice-math.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/libreoffice-impress.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/libreoffice-draw.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/libreoffice-calc.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/libreoffice-base.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/ktorrent.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/kate.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/inkscape.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/imagewriter.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/google-chrome.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/google-chrome-beta.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/gedit.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/firefox.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/cutemarked.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/chromium-browser.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/calamares.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/asc-de.png</file>
+        <file>icons/luv-icon-theme/Luv/apps/48/anbox.png</file>
+    </qresource>
+</RCC>
