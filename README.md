@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## Base On Mauikit (https://github.com/mauikit/mauikit)
 
 # MauiKit-Jingos
@@ -32,3 +33,8 @@ for reachability. It also contains a Kirigami PagaRow as the default contain lay
 #### Maui.FloatingBox
 
 
+=======
+## Base On mauikit(https://github.com/mauikit/mauikit)
+
+# Change sth for jingos-filemanager
+>>>>>>> 21f1cd6b2a6c3d8ce0cd325438d06e5b10084f13
