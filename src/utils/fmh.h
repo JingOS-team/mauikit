@@ -36,7 +36,7 @@
 
 #if defined(Q_OS_ANDROID)
 #include "mauiandroid.h"
-#elif defined Q_OS_LINUX || defined Q_OS_WIN
+#elif defined(Q_OS_LINUX)
 #include <KConfig>
 #include <KConfigGroup>
 #include <KFileItem>
@@ -85,9 +85,24 @@ bool MAUIKIT_EXPORT isIOS();
  */
 enum FILTER_TYPE : int { AUDIO, VIDEO, TEXT, IMAGE, DOCUMENT, COMPRESSED, FONT, NONE };
 
-static const QStringList AUDIO_MIMETYPES = {"audio/mpeg", "audio/mp4", "audio/flac", "audio/ogg", "audio/wav"};
 
-static const QStringList VIDEO_MIMETYPES = {"video/mp4", "video/x-matroska", "video/webm", "video/avi", "video/flv", "video/mpg", "video/wmv", "video/mov", "video/ogg", "video/mpeg", "video/jpeg"};
+static const QStringList AUDIO_MIMETYPES = {"audio/mpeg",
+                                            "audio/mp4",
+                                            "audio/flac",
+                                            "audio/ogg",
+                                            "audio/wav"};
+
+static const QStringList VIDEO_MIMETYPES = {"video/mp4",
+                                            "video/x-matroska",
+                                            "video/webm",
+                                            "video/avi",
+                                            "video/flv",
+                                            "video/mpg",
+                                            "video/wmv",
+                                            "video/mov",
+                                            "video/ogg",
+                                            "video/mpeg",
+                                            "video/jpeg"};
 
 static const QStringList TEXT_MIMETYPES = {"text/markdown",
                                            "text/x-chdr",
@@ -110,14 +125,32 @@ static const QStringList TEXT_MIMETYPES = {"text/markdown",
                                            "application/x-cmakecache",
                                            "application/x-kicad-project"};
 
-static const QStringList IMAGE_MIMETYPES = {"image/bmp", "image/webp", "image/png", "image/gif", "image/jpeg", "image/web", "image/svg", "image/svg+xml"};
+static const QStringList IMAGE_MIMETYPES = {"image/bmp",
+                                            "image/webp",
+                                            "image/png",
+                                            "image/gif",
+                                            "image/jpeg",
+                                            "image/web",
+                                            "image/svg",
+                                            "image/svg+xml"};
 
-static const QStringList DOCUMENT_MIMETYPES = {"application/pdf", "application/rtf", "application/doc", "application/odf"};
+static const QStringList DOCUMENT_MIMETYPES = {"application/pdf",
+                                               "application/rtf",
+                                               "application/doc",
+                                               "application/odf"};
 
-static const QStringList COMPRESSED_MIMETYPES =
-{"application/x-compress", "application/x-compressed", "application/x-xz-compressed-tar", "application/x-compressed-tar", "application/x-xz", "application/x-bzip", "application/x-gtar", "application/x-gzip", "application/zip"};
+static const QStringList COMPRESSED_MIMETYPES = {"application/x-compress",
+                                                 "application/x-compressed",
+                                                 "application/x-xz-compressed-tar",
+                                                 "application/x-compressed-tar",
+                                                 "application/x-xz",
+                                                 "application/x-bzip",
+                                                 "application/x-gtar",
+                                                 "application/x-gzip",
+                                                 "application/zip"};
 
-static const QStringList FONT_MIMETYPES = {"font/ttf", "font/otf"};
+static const QStringList FONT_MIMETYPES = {"font/ttf",
+                                           "font/otf"};
 
 static const QMap<FILTER_TYPE, QStringList> SUPPORTED_MIMETYPES {{FILTER_TYPE::AUDIO, AUDIO_MIMETYPES},
                                                                  {FILTER_TYPE::VIDEO, VIDEO_MIMETYPES},
@@ -132,7 +165,7 @@ static const QMap<FILTER_TYPE, QStringList> SUPPORTED_MIMETYPES {{FILTER_TYPE::A
  * @param type
  * @return
  */
-static QStringList getMimeTypeSuffixes(const FMH::FILTER_TYPE &type, QString (*cb)(QString))
+static QStringList MAUIKIT_EXPORT getMimeTypeSuffixes(const FMH::FILTER_TYPE &type, QString (*cb)(QString))
 {
     QStringList res;
     QMimeDatabase mimedb;
@@ -149,42 +182,14 @@ static QStringList getMimeTypeSuffixes(const FMH::FILTER_TYPE &type, QString (*c
     return res;
 }
 
-static QHash<FILTER_TYPE, QStringList> FILTER_LIST = {{FILTER_TYPE::AUDIO,
-                                                       getMimeTypeSuffixes(FILTER_TYPE::AUDIO,
-                                                       [](QString suffix) -> QString {
-                                                           return "*." + suffix;
-                                                       })},
-                                                      {FILTER_TYPE::VIDEO,
-                                                       getMimeTypeSuffixes(FILTER_TYPE::VIDEO,
-                                                       [](QString suffix) -> QString {
-                                                           return "*." + suffix;
-                                                       })},
-                                                      {FILTER_TYPE::TEXT,
-                                                       getMimeTypeSuffixes(FILTER_TYPE::TEXT,
-                                                       [](QString suffix) -> QString {
-                                                           return "*." + suffix;
-                                                       })},
-                                                      {FILTER_TYPE::DOCUMENT,
-                                                       getMimeTypeSuffixes(FILTER_TYPE::DOCUMENT,
-                                                       [](QString suffix) -> QString {
-                                                           return "*." + suffix;
-                                                       })},
-                                                      {FILTER_TYPE::COMPRESSED,
-                                                       getMimeTypeSuffixes(FILTER_TYPE::COMPRESSED,
-                                                       [](QString suffix) -> QString {
-                                                           return "*." + suffix;
-                                                       })},
-                                                      {FILTER_TYPE::FONT,
-                                                       getMimeTypeSuffixes(FILTER_TYPE::FONT,
-                                                       [](QString suffix) -> QString {
-                                                           return "*." + suffix;
-                                                       })},
-                                                      {FILTER_TYPE::IMAGE,
-                                                       getMimeTypeSuffixes(FILTER_TYPE::IMAGE,
-                                                       [](QString suffix) -> QString {
-                                                           return "*." + suffix;
-                                                       })},
-                                                      {FILTER_TYPE::NONE, QStringList()}};
+static QHash<FILTER_TYPE, QStringList> FILTER_LIST = {{FILTER_TYPE::AUDIO, getMimeTypeSuffixes(FILTER_TYPE::AUDIO, [](QString suffix) -> QString { return "*." + suffix; })},
+{FILTER_TYPE::VIDEO, getMimeTypeSuffixes(FILTER_TYPE::VIDEO, [](QString suffix) -> QString { return "*." + suffix; })},
+{FILTER_TYPE::TEXT, getMimeTypeSuffixes(FILTER_TYPE::TEXT, [](QString suffix) -> QString { return "*." + suffix; })},
+{FILTER_TYPE::DOCUMENT, getMimeTypeSuffixes(FILTER_TYPE::DOCUMENT, [](QString suffix) -> QString { return "*." + suffix; })},
+{FILTER_TYPE::COMPRESSED, getMimeTypeSuffixes(FILTER_TYPE::COMPRESSED, [](QString suffix) -> QString { return "*." + suffix; })},
+{FILTER_TYPE::FONT, getMimeTypeSuffixes(FILTER_TYPE::FONT, [](QString suffix) -> QString { return "*." + suffix; })},
+{FILTER_TYPE::IMAGE, getMimeTypeSuffixes(FILTER_TYPE::IMAGE, [](QString suffix) -> QString { return "*." + suffix; })},
+{FILTER_TYPE::NONE, QStringList()}};
 
 /**
  * @brief The MODEL_KEY enum
@@ -263,6 +268,8 @@ enum MODEL_KEY : int {
     LINK,
     STAMP,
     BOOK,
+
+    /** ccdav keys **/
     N,
     PHOTO,
     GENDER,
@@ -281,9 +288,13 @@ enum MODEL_KEY : int {
     TEL_2,
     TEL_3,
     IM,
+
+    /** other keys **/
     CITY,
     STATE,
     COUNTRY,
+
+    /** keys from opendesktop store **/
     PACKAGE_ARCH,
     PACKAGE_TYPE,
     GPG_FINGERPRINT,
@@ -309,6 +320,8 @@ enum MODEL_KEY : int {
     TYPE_ID,
     TYPE_NAME,
     XDG_TYPE,
+
+    // file props
     SYMLINK,
     IS_SYMLINK,
     IS_DIR,
@@ -320,13 +333,14 @@ enum MODEL_KEY : int {
     LAST_READ,
     VALUE,
     KEY,
+
     MAC,
     LOT,
     APP,
     URI,
     DEVICE,
-    LASTSYNC,
-    UDI
+    LASTSYNC
+
 };
 
 static const QHash<MODEL_KEY, QString> MODEL_NAME = {{MODEL_KEY::ICON, "icon"},
@@ -472,10 +486,10 @@ static const QHash<MODEL_KEY, QString> MODEL_NAME = {{MODEL_KEY::ICON, "icon"},
                                                      {MODEL_KEY::APP, "app"},
                                                      {MODEL_KEY::URI, "uri"},
                                                      {MODEL_KEY::DEVICE, "device"},
-                                                     {MODEL_KEY::UDI, "udi"},
-                                                     {MODEL_KEY::LASTSYNC, "lastsync"}};
+                                                     {MODEL_KEY::LASTSYNC, "lastsync"}
+                                                    };
 
-static const QHash<QString, MODEL_KEY> MODEL_NAME_KEY = {{MODEL_NAME[MODEL_KEY::ICON], MODEL_KEY::ICON},
+static const QHash<QString, MODEL_KEY> MAUIKIT_EXPORT MODEL_NAME_KEY = {{MODEL_NAME[MODEL_KEY::ICON], MODEL_KEY::ICON},
                                                          {MODEL_NAME[MODEL_KEY::LABEL], MODEL_KEY::LABEL},
                                                          {MODEL_NAME[MODEL_KEY::PATH], MODEL_KEY::PATH},
                                                          {MODEL_NAME[MODEL_KEY::URL], MODEL_KEY::URL},
@@ -621,8 +635,8 @@ static const QHash<QString, MODEL_KEY> MODEL_NAME_KEY = {{MODEL_NAME[MODEL_KEY::
                                                          {MODEL_NAME[MODEL_KEY::APP], MODEL_KEY::APP},
                                                          {MODEL_NAME[MODEL_KEY::URI], MODEL_KEY::URI},
                                                          {MODEL_NAME[MODEL_KEY::DEVICE], MODEL_KEY::DEVICE},
-                                                         {MODEL_NAME[MODEL_KEY::UDI], MODEL_KEY::UDI},
-                                                         {MODEL_NAME[MODEL_KEY::LASTSYNC], MODEL_KEY::LASTSYNC}};
+                                                         {MODEL_NAME[MODEL_KEY::LASTSYNC], MODEL_KEY::LASTSYNC}
+                                                        };
 /**
  * @brief MODEL
  */
@@ -663,8 +677,8 @@ const QVariantMap MAUIKIT_EXPORT toMap(const MODEL &model);
 const MODEL MAUIKIT_EXPORT toModel(const QVariantMap &map);
 
 /**
- * Creates a MODEL_LIST from a QVariantList
- * */
+         * Creates a MODEL_LIST from a QVariantList
+         * */
 /**
  * @brief toModelList
  * @param list
@@ -673,8 +687,8 @@ const MODEL MAUIKIT_EXPORT toModel(const QVariantMap &map);
 const MODEL_LIST MAUIKIT_EXPORT toModelList(const QVariantList &list);
 
 /**
- * Creates a QVariantList from a MODEL_LIST
- * */
+         * Creates a QVariantList from a MODEL_LIST
+         * */
 /**
  * @brief toMapList
  * @param list
@@ -683,8 +697,8 @@ const MODEL_LIST MAUIKIT_EXPORT toModelList(const QVariantList &list);
 const QVariantList MAUIKIT_EXPORT toMapList(const MODEL_LIST &list);
 
 /**
- * Creates a new MODEL from another filtered by the given array of MODEL_KEY
- * */
+         * Creates a new MODEL from another filtered by the given array of MODEL_KEY
+         * */
 /**
  * @brief filterModel
  * @param model
@@ -694,8 +708,8 @@ const QVariantList MAUIKIT_EXPORT toMapList(const MODEL_LIST &list);
 const MODEL MAUIKIT_EXPORT filterModel(const MODEL &model, const QVector<MODEL_KEY> &keys);
 
 /**
- * Extracts from a MODEL_LIST the values from a given MODEL::KEY into a QStringList
- * */
+         * Extracts from a MODEL_LIST the values from a given MODEL::KEY into a QStringList
+         * */
 
 /**
  * @brief modelToList
@@ -709,14 +723,14 @@ const QStringList MAUIKIT_EXPORT modelToList(const MODEL_LIST &list, const MODEL
  * @brief The PATH_CONTENT struct
  */
 struct PATH_CONTENT {
-    QUrl path; // the url holding all the content
+    QUrl path;               // the url holding all the content
     MODEL_LIST content; // the content from the url
 };
 
 /**
  * @brief The PATHTYPE_KEY enum
  */
-#if defined Q_OS_ANDROID || defined Q_OS_WIN || defined Q_OS_MACOS || defined Q_OS_IOS // for android, windows and mac use this for now
+#if defined Q_OS_ANDROID || defined Q_OS_WIN32 || defined Q_OS_MACOS || defined Q_OS_IOS // for android, windows and mac use this for now
 enum PATHTYPE_KEY : int {
     PLACES_PATH,
     REMOTE_PATH,
@@ -754,7 +768,7 @@ enum PATHTYPE_KEY : int {
 };
 #endif
 
-static const QHash<PATHTYPE_KEY, QString> PATHTYPE_SCHEME = {{PATHTYPE_KEY::PLACES_PATH, "file"},
+static const QHash<PATHTYPE_KEY, QString> MAUIKIT_EXPORT PATHTYPE_SCHEME = {{PATHTYPE_KEY::PLACES_PATH, "file"},
                                                              {PATHTYPE_KEY::BOOKMARKS_PATH, "file"},
                                                              {PATHTYPE_KEY::DRIVES_PATH, "drives"},
                                                              {PATHTYPE_KEY::APPS_PATH, "applications"},
@@ -768,21 +782,21 @@ static const QHash<PATHTYPE_KEY, QString> PATHTYPE_SCHEME = {{PATHTYPE_KEY::PLAC
                                                              {PATHTYPE_KEY::FISH_PATH, "fish"},
                                                              {PATHTYPE_KEY::MTP_PATH, "mtp"}};
 
-static const QHash<QString, PATHTYPE_KEY> PATHTYPE_SCHEME_NAME = {{PATHTYPE_SCHEME[PATHTYPE_KEY::PLACES_PATH], PATHTYPE_KEY::PLACES_PATH},
-                                                                  {PATHTYPE_SCHEME[PATHTYPE_KEY::BOOKMARKS_PATH], PATHTYPE_KEY::BOOKMARKS_PATH},
-                                                                  {PATHTYPE_SCHEME[PATHTYPE_KEY::DRIVES_PATH], PATHTYPE_KEY::DRIVES_PATH},
-                                                                  {PATHTYPE_SCHEME[PATHTYPE_KEY::APPS_PATH], PATHTYPE_KEY::APPS_PATH},
-                                                                  {PATHTYPE_SCHEME[PATHTYPE_KEY::REMOTE_PATH], PATHTYPE_KEY::REMOTE_PATH},
-                                                                  {PATHTYPE_SCHEME[PATHTYPE_KEY::REMOVABLE_PATH], PATHTYPE_KEY::REMOVABLE_PATH},
-                                                                  {PATHTYPE_SCHEME[PATHTYPE_KEY::UNKNOWN_TYPE], PATHTYPE_KEY::UNKNOWN_TYPE},
-                                                                  {PATHTYPE_SCHEME[PATHTYPE_KEY::TRASH_PATH], PATHTYPE_KEY::TRASH_PATH},
-                                                                  {PATHTYPE_SCHEME[PATHTYPE_KEY::TAGS_PATH], PATHTYPE_KEY::TAGS_PATH},
-                                                                  {PATHTYPE_SCHEME[PATHTYPE_KEY::SEARCH_PATH], PATHTYPE_KEY::SEARCH_PATH},
-                                                                  {PATHTYPE_SCHEME[PATHTYPE_KEY::CLOUD_PATH], PATHTYPE_KEY::CLOUD_PATH},
-                                                                  {PATHTYPE_SCHEME[PATHTYPE_KEY::FISH_PATH], PATHTYPE_KEY::FISH_PATH},
-                                                                  {PATHTYPE_SCHEME[PATHTYPE_KEY::MTP_PATH], PATHTYPE_KEY::MTP_PATH}};
+static const QHash<QString, PATHTYPE_KEY> MAUIKIT_EXPORT PATHTYPE_SCHEME_NAME ={{PATHTYPE_SCHEME[PATHTYPE_KEY::PLACES_PATH], PATHTYPE_KEY::PLACES_PATH},
+                                                                 {PATHTYPE_SCHEME[PATHTYPE_KEY::BOOKMARKS_PATH], PATHTYPE_KEY::BOOKMARKS_PATH},
+                                                                 {PATHTYPE_SCHEME[PATHTYPE_KEY::DRIVES_PATH], PATHTYPE_KEY::DRIVES_PATH},
+                                                                 {PATHTYPE_SCHEME[PATHTYPE_KEY::APPS_PATH], PATHTYPE_KEY::APPS_PATH},
+                                                                 {PATHTYPE_SCHEME[PATHTYPE_KEY::REMOTE_PATH], PATHTYPE_KEY::REMOTE_PATH},
+                                                                 {PATHTYPE_SCHEME[PATHTYPE_KEY::REMOVABLE_PATH], PATHTYPE_KEY::REMOVABLE_PATH},
+                                                                 {PATHTYPE_SCHEME[PATHTYPE_KEY::UNKNOWN_TYPE], PATHTYPE_KEY::UNKNOWN_TYPE},
+                                                                 {PATHTYPE_SCHEME[PATHTYPE_KEY::TRASH_PATH], PATHTYPE_KEY::TRASH_PATH},
+                                                                 {PATHTYPE_SCHEME[PATHTYPE_KEY::TAGS_PATH], PATHTYPE_KEY::TAGS_PATH},
+                                                                 {PATHTYPE_SCHEME[PATHTYPE_KEY::SEARCH_PATH], PATHTYPE_KEY::SEARCH_PATH},
+                                                                 {PATHTYPE_SCHEME[PATHTYPE_KEY::CLOUD_PATH], PATHTYPE_KEY::CLOUD_PATH},
+                                                                 {PATHTYPE_SCHEME[PATHTYPE_KEY::FISH_PATH], PATHTYPE_KEY::FISH_PATH},
+                                                                 {PATHTYPE_SCHEME[PATHTYPE_KEY::MTP_PATH], PATHTYPE_KEY::MTP_PATH}};
 
-static const QHash<PATHTYPE_KEY, QString> PATHTYPE_URI = {{PATHTYPE_KEY::PLACES_PATH, PATHTYPE_SCHEME[PATHTYPE_KEY::PLACES_PATH] + "://"},
+static const QHash<PATHTYPE_KEY, QString> MAUIKIT_EXPORT PATHTYPE_URI = {{PATHTYPE_KEY::PLACES_PATH, PATHTYPE_SCHEME[PATHTYPE_KEY::PLACES_PATH] + "://"},
                                                           {PATHTYPE_KEY::BOOKMARKS_PATH, PATHTYPE_SCHEME[PATHTYPE_KEY::BOOKMARKS_PATH] + "://"},
                                                           {PATHTYPE_KEY::DRIVES_PATH, PATHTYPE_SCHEME[PATHTYPE_KEY::DRIVES_PATH] + "://"},
                                                           {PATHTYPE_KEY::APPS_PATH, PATHTYPE_SCHEME[PATHTYPE_KEY::APPS_PATH] + ":///"},
@@ -796,7 +810,7 @@ static const QHash<PATHTYPE_KEY, QString> PATHTYPE_URI = {{PATHTYPE_KEY::PLACES_
                                                           {PATHTYPE_KEY::FISH_PATH, PATHTYPE_SCHEME[PATHTYPE_KEY::FISH_PATH] + "://"},
                                                           {PATHTYPE_KEY::MTP_PATH, PATHTYPE_SCHEME[PATHTYPE_KEY::MTP_PATH] + "://"}};
 
-static const QHash<PATHTYPE_KEY, QString> PATHTYPE_LABEL = {{PATHTYPE_KEY::PLACES_PATH, ("Places")},
+static const QHash<PATHTYPE_KEY, QString> MAUIKIT_EXPORT PATHTYPE_LABEL = {{PATHTYPE_KEY::PLACES_PATH, ("Places")},
                                                             {PATHTYPE_KEY::BOOKMARKS_PATH, ("Bookmarks")},
                                                             {PATHTYPE_KEY::DRIVES_PATH, ("Drives")},
                                                             {PATHTYPE_KEY::APPS_PATH, ("Apps")},
@@ -868,9 +882,9 @@ static const QStringList defaultPaths = {
     PicturesPath,
     MusicPath,
     VideosPath,
-    DownloadsPath /*,
-         RootPath,
-         TrashPath*/
+    DownloadsPath/*,
+    RootPath,
+    TrashPath*/
 };
 
 #endif
@@ -886,9 +900,9 @@ static const QMap<QString, QString> folderIcon {{PicturesPath, "folder-pictures"
                                                 {RootPath, "folder-root"}};
 
 /**
- * Checks if a local file exists.
- * The URL must represent a local file path, by using the scheme file://
- **/
+         * Checks if a local file exists.
+         * The URL must represent a local file path, by using the scheme file://
+         **/
 /**
  * @brief fileExists
  * @param path
@@ -901,26 +915,26 @@ bool MAUIKIT_EXPORT fileExists(const QUrl &path);
  * @param path
  * @return
  */
-const QString MAUIKIT_EXPORT fileDir(const QUrl &path);
+const MAUIKIT_EXPORT QString fileDir(const QUrl &path);
 
 /**
  * @brief parentDir
  * @param path
  * @return
  */
-const QUrl MAUIKIT_EXPORT parentDir(const QUrl &path);
+const MAUIKIT_EXPORT QUrl parentDir(const QUrl &path);
 
 /**
- * Return the configuration of a single directory represented
- * by a QVariantMap.
- * The passed path must be a local file URL.
- **/
+         * Return the configuration of a single directory represented
+         * by a QVariantMap.
+         * The passed path must be a local file URL.
+         **/
 /**
  * @brief dirConf
  * @param path
  * @return
  */
-const QVariantMap MAUIKIT_EXPORT dirConf(const QUrl &path);
+const MAUIKIT_EXPORT QVariantMap dirConf(const QUrl &path);
 
 /**
  * @brief setDirConf
@@ -931,11 +945,13 @@ const QVariantMap MAUIKIT_EXPORT dirConf(const QUrl &path);
  */
 void MAUIKIT_EXPORT setDirConf(const QUrl &path, const QString &group, const QString &key, const QVariant &value);
 
+
+
 /**
  * @brief getIconName
  * Returns the icon name for certain file.
- * The file path must be represented as a local file URL.
- * It also looks into the directory config file to get custom set icons
+         * The file path must be represented as a local file URL.
+         * It also looks into the directory config file to get custom set icons
  * @param path
  * @return
  */
@@ -964,7 +980,7 @@ bool MAUIKIT_EXPORT checkFileType(const FILTER_TYPE &type, const QString &mimeTy
  */
 const QUrl MAUIKIT_EXPORT thumbnailUrl(const QUrl &url, const QString &mimetype);
 
-#if (!defined Q_OS_ANDROID && defined Q_OS_LINUX) || defined Q_OS_WIN
+#if !defined Q_OS_ANDROID && defined Q_OS_LINUX
 /**
  * @brief packFileInfo
  * @param item
@@ -988,7 +1004,7 @@ const MODEL MAUIKIT_EXPORT getFileInfoModel(const QUrl &path);
 const QVariantMap MAUIKIT_EXPORT getFileInfo(const QUrl &path);
 
 /**
- * @brief getDirInfoModel
+* @brief getDirInfoModel
  * @param path
  * @param type
  * @return
@@ -1010,5 +1026,6 @@ const QVariantMap MAUIKIT_EXPORT getDirInfo(const QUrl &path);
  */
 PATHTYPE_KEY MAUIKIT_EXPORT getPathType(const QUrl &url);
 }
+
 
 #endif // FMH_H

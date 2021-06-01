@@ -147,13 +147,6 @@ Rectangle
                     showEntryBar()
                 }
             }
-
-            //             Keys.enabled: true
-            //             Keys.onPressed:
-            //             {
-            //                 console.log(event.key)
-            //                 pathEntry = false
-            //             }
         }
     }
 

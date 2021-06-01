@@ -21,10 +21,15 @@ Maui.ItemDelegate
     property alias template : _template
     
     /**
-     * margins :
+     * contentWidth : function
      */
-    property int margins : isWide ? Maui.Style.space.medium : Maui.Style.space.tiny
-        
+    property int contentWidth: Maui.Style.iconSizes.huge
+    
+    /**
+     * contentHeight : function
+     */
+    property int contentHeight: Maui.Style.iconSizes.huge
+    
     /**
      * randomHexColor : function
      */
@@ -44,8 +49,9 @@ Maui.ItemDelegate
     
     ColumnLayout
     {
-        anchors.fill: parent
-        anchors.margins: control.margins
+        width: control.contentWidth
+        height: control.contentHeight
+        anchors.centerIn: parent
         spacing: Maui.Style.space.small
         
         Item
@@ -142,7 +148,7 @@ Maui.ItemDelegate
         Item
         {
             Layout.fillWidth: true
-            Layout.preferredHeight: Math.min( _template.implicitHeight + Maui.Style.space.big, Maui.Style.rowHeight * 2)
+            Layout.preferredHeight: Maui.Style.rowHeight
             
             Rectangle
             {
@@ -168,10 +174,7 @@ Maui.ItemDelegate
             {
                 id: _template
                 isCurrentItem: control.isCurrentItem
-                width: parent.width
-                height: Math.min(parent.height, implicitHeight)
-                anchors.centerIn: parent
-                label1.wrapMode: Text.WordWrap
+                anchors.fill: parent
                 rightLabels.visible: control.width >= 200
                 iconSizeHint: Maui.Style.iconSizes.small
             }

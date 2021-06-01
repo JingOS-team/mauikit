@@ -309,8 +309,6 @@ Maui.Page
 
             onPinchFinished:
             {
-                console.log("pinch.scale", pinch.scale)
-
                 if(pinch.scale > 1.5)
                     control.zoomIn()
                     else control.zoomOut()
@@ -321,7 +319,6 @@ Maui.Page
                 anchors.fill: parent
                 onPressed:
                 {
-                    console.log("Editor")
                     body.forceActiveFocus()
                 }
 

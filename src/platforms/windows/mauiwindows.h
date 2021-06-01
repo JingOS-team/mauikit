@@ -1,8 +1,8 @@
 #ifndef MAUIWINDOWSH_H
 #define MAUIWINDOWSH_H
 
-#include "abstractplatform.h"
 #include <QObject>
+#include "abstractplatform.h"
 
 class MAUIWindows : public AbstractPlatform
 {

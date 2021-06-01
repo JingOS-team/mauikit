@@ -35,7 +35,8 @@ void Syncing::setCredentials(const QString &server, const QString &user, const Q
 void Syncing::listDirOutputHandler(WebDAVReply *reply, const QStringList &filters)
 {
     connect(reply, &WebDAVReply::listDirResponse, this, [=](QNetworkReply *, QList<WebDAVItem> items) {
-        // 		qDebug() << "URL :" << listDirReply->url();
+        // qDebug() << "syncing.cpp listDirOutputHandler !!!!!";
+        		// qDebug() << "URL :" << listDirReply->url();
         // 		qDebug() << "Received List of" << items.length() << "items";
         // 		qDebug() << endl << "---------------------------------------";
         FMH::MODEL_LIST list;
@@ -120,9 +121,7 @@ void Syncing::download(const QUrl &path)
         emit this->progress(percent);
     });
 
-    connect(reply, &WebDAVReply::error, this, [=](QNetworkReply::NetworkError err) {
-        qDebug() << "ERROR" << err;
-    });
+    connect(reply, &WebDAVReply::error, this, [=](QNetworkReply::NetworkError err) { qDebug() << "ERROR" << err; });
 }
 
 void Syncing::upload(const QUrl &path, const QUrl &filePath)

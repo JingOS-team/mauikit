@@ -171,21 +171,11 @@ Maui.Page
         onAccepted: ksession.find(text)
     }
 
-// 			Keys.enabled: true
-// 			Keys.onPressed:
-// 			{
-// 				console.log("key poress", event.key)
-// 				if((event.key == Qt.Key_V) && (event.modifiers & Qt.ControlModifier) && (event.modifiers & Qt.ShiftModifier))
-// 				{
-// 					kterminal.pasteClipboard()
-// 				}
-// 			}
-
     QMLTermWidget
     {
         id: kterminal
         anchors.fill: parent
-//         terminalUsesMouse: true
+
         enableBold: true
         fullCursorHeight: true
 // 		onKeyPressedSignal: console.log(e.key)
@@ -258,15 +248,11 @@ Maui.Page
             onClicked:
             {
                 if(mouse.button === Qt.RightButton)
-                {
                     terminalMenu.popup()
-                    
-                } else if(mouse.button === Qt.LeftButton)
-                {                    
-                    kterminal.forceActiveFocus()
-                }
-                
-                control.clicked()
+                    else if(mouse.button === Qt.LeftButton)
+                        kterminal.forceActiveFocus()
+
+                        control.clicked()
             }
 
             onPressAndHold:
@@ -276,8 +262,7 @@ Maui.Page
             }
         }
         
-        TerminalInputArea 
-        {
+        TerminalInputArea {
         id: inputArea
 //         enabled: terminalPage.state != "SELECTION"
 enabled: true
@@ -293,32 +278,17 @@ enabled: true
         // Mouse actions
         onMouseMoveDetected: kterminal.simulateMouseMove(x, y, button, buttons, modifiers);
         onDoubleClickDetected: kterminal.simulateMouseDoubleClick(x, y, button, buttons, modifiers);
-        onMousePressDetected: 
-        {
+        onMousePressDetected: {
             kterminal.forceActiveFocus();
             kterminal.simulateMousePress(x, y, button, buttons, modifiers);
-            control.clicked()
         }
         onMouseReleaseDetected: kterminal.simulateMouseRelease(x, y, button, buttons, modifiers);
         onMouseWheelDetected: kterminal.simulateWheel(x, y, buttons, modifiers, angleDelta);
 
         // Touch actions
-        onTouchPress: 
-        {
-            kterminal.forceActiveFocus()
-            control.clicked()
-        }
-        
-        onTouchClick:
-        {
-            kterminal.simulateKeyPress(Qt.Key_Tab, Qt.NoModifier, true, 0, "");
-            control.clicked()
-        }
-        
-        onTouchPressAndHold: 
-        {
-            alternateAction(x, y);
-        }
+        onTouchPress: kterminal.forceActiveFocus()
+        onTouchClick: kterminal.simulateKeyPress(Qt.Key_Tab, Qt.NoModifier, true, 0, "");
+        onTouchPressAndHold: alternateAction(x, y);
 
         // Swipe actions
         onSwipeYDetected: {
@@ -383,9 +353,10 @@ enabled: true
         // Semantic actions
         onAlternateAction: {
             // Force the hiddenButton in the event position.
-            //hiddenButton.x = x;
-            //hiddenButton.y = y;
-            terminalMenu.popup()
+            hiddenButton.x = x;
+            hiddenButton.y = y;
+            PopupUtils.open(Qt.resolvedUrl("AlternateActionPopover.qml"),
+                            hiddenButton);
         }
     }
 

@@ -3,12 +3,11 @@ import QtQuick.Controls 2.13
 import QtQuick.Layouts 1.3
 import org.kde.kirigami 2.7 as Kirigami
 import org.kde.mauikit 1.3 as Maui
-import QtGraphicalEffects 1.0
 
 Maui.AlternateListItem
 {
     id: control
-
+    
     /**
      *
      */
@@ -42,13 +41,13 @@ Maui.AlternateListItem
     alt: index % 2 === 0
 
     Layout.fillWidth: true
-    implicitHeight: _layout.implicitHeight + (Maui.Style.space.big * 2)
+    implicitHeight: _layout.implicitHeight + Maui.Style.space.big
 
     ColumnLayout
     {
         id: _layout
         anchors.fill: parent
-        anchors.margins: Maui.Style.space.big
+        anchors.margins: Maui.Style.space.medium
         spacing: Maui.Style.space.medium
 
         Maui.SectionDropDown
@@ -60,43 +59,14 @@ Maui.AlternateListItem
             checked: true
         }
 
-        Rectangle
+        ColumnLayout
         {
-            Layout.fillWidth: true
-//             Layout.margins: Maui.Style.space.medium
-
-            implicitHeight: _mainData.implicitHeight
+            id: _mainData
             visible: _template.checked
-            
-            color: "transparent"
+            Layout.fillWidth: true
+            spacing: Maui.Style.space.big
 
-            radius: Maui.Style.radiusV
- border.color: Qt.tint(control.Kirigami.Theme.textColor, Qt.rgba(control.Kirigami.Theme.backgroundColor.r, control.Kirigami.Theme.backgroundColor.g, control.Kirigami.Theme.backgroundColor.b, 0.9))
-
-            ColumnLayout
-            {
-                id: _mainData
-                spacing: Maui.Style.space.tiny
-                width: parent.width
-                anchors.centerIn: parent
-            }
-
-            layer.enabled: true
-            layer.effect: OpacityMask
-            {
-                maskSource: Item
-                {
-                    width: Math.floor(_mainData.width)
-                    height: Math.floor(_mainData.height)
-
-                    Rectangle
-                    {
-                        anchors.fill: parent
-                        radius: Maui.Style.radiusV
-                    }
-                }
-            }
+            Layout.margins: Maui.Style.space.medium
         }
-
     }
 }

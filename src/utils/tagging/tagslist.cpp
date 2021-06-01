@@ -1,15 +1,16 @@
 #include "tagslist.h"
 #include "tagging.h"
 
-TagsList::TagsList(QObject *parent)
-    : MauiList(parent)
+TagsList::TagsList(QObject *parent) : MauiList(parent)
 {
     this->tag = Tagging::getInstance();
 
-    connect(this->tag, &Tagging::tagged, [&](QVariantMap tag) {
-        if (this->urls.isEmpty()) {
-            this->append(FMH::toModel(tag));
-        }
+    connect(this->tag, &Tagging::tagged, [&](QVariantMap tag)
+    {   
+        if (this->urls.isEmpty())    
+        {
+            this->append(FMH::toModel(tag));  
+        }   
     });
 
     this->setList();
@@ -18,7 +19,7 @@ TagsList::TagsList(QObject *parent)
 void TagsList::setList()
 {
     emit this->preListChanged();
-
+    
     if (this->urls.isEmpty())
         this->list = FMH::toModelList(this->tag->getAllTags(this->strict));
     else {
@@ -27,7 +28,7 @@ void TagsList::setList()
             list << FMH::toModelList(this->tag->getUrlTags(url, this->strict));
             return list;
         });
-    }
+    }    
 
     emit this->tagsChanged();
     emit this->postListChanged();
@@ -168,7 +169,7 @@ void TagsList::append(const FMH::MODEL &tag)
 {
     if (this->exists(FMH::MODEL_KEY::TAG, tag[FMH::MODEL_KEY::TAG]))
         return;
-
+    
     emit this->preItemAppended();
     this->list << tag;
     emit this->postItemAppended();
@@ -181,7 +182,8 @@ void TagsList::append(const QStringList &tags)
         this->append(tag);
 }
 
-bool TagsList::contains(const QString &tag)
+bool TagsList::contains(const QString& tag)
 {
     return this->exists(FMH::MODEL_KEY::TAG, tag);
 }
+

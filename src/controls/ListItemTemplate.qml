@@ -44,7 +44,6 @@ Item
     default property alias content: _layout.data
 
     implicitHeight: _layout.implicitHeight
-    implicitWidth: _layout.implicitWidth
 
     /**
       * text1 : string
@@ -220,7 +219,7 @@ Item
       * iconComponent : Component
       */
     property Component iconComponent :  _iconContainer.visible ? _iconComponent : null
-    
+
     /**
       * toggled
       */
@@ -339,6 +338,7 @@ Item
                 anchors.centerIn: parent
 
                 width: Math.min(parent.height, Math.max(control.iconSizeHint, control.imageSizeHint))
+
                 height: width
 
                 sourceComponent: control.iconComponent

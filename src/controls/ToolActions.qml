@@ -23,7 +23,7 @@ import "private" as Private
 Rectangle
 {
     id: control
-    implicitWidth: _container.implicitWidth
+    implicitWidth: _loader.item ? _loader.item.implicitWidth : 0
     implicitHeight: Maui.Style.iconSizes.medium + (Maui.Style.space.medium * 1.12)
     
     Kirigami.Theme.colorSet: Kirigami.Theme.View
@@ -52,11 +52,6 @@ Rectangle
      * cyclic : bool
      */
     property bool cyclic: false
-    
-    /**
-     * flat : bool
-     */
-    property bool flat : false
     
     /**
      * count : int
@@ -90,9 +85,9 @@ Rectangle
      */
     property string defaultIconName: "application-menu"
     
-    border.color: control.flat ? "transparent" : Qt.tint(Kirigami.Theme.textColor, Qt.rgba(Kirigami.Theme.backgroundColor.r, Kirigami.Theme.backgroundColor.g, Kirigami.Theme.backgroundColor.b, 0.7))
+    border.color: Qt.tint(Kirigami.Theme.textColor, Qt.rgba(Kirigami.Theme.backgroundColor.r, Kirigami.Theme.backgroundColor.g, Kirigami.Theme.backgroundColor.b, 0.7))
     radius: Maui.Style.radiusV
-    color: !control.enabled || control.flat ? "transparent" : Kirigami.Theme.backgroundColor
+    color: enabled ? Kirigami.Theme.backgroundColor : "transparent"
     //    Kirigami.Theme.colorSet: Kirigami.Theme.View
     //    Kirigami.Theme.inherit: false
     
@@ -120,7 +115,7 @@ Rectangle
         }
     }
     
-    Row
+    Item
     {
         id: _container
         anchors.fill: parent
@@ -131,7 +126,7 @@ Rectangle
             sourceComponent: control.expanded ? _rowComponent : _menuComponent
         } 
         
-        layer.enabled: !control.flat
+        layer.enabled: true
         layer.effect: OpacityMask
         {
             maskSource: Item
@@ -157,6 +152,7 @@ Rectangle
         {
             id: _row
             spacing: 0
+            height: parent.height
             
             clip: true
             
@@ -209,7 +205,7 @@ Rectangle
                         anchors.top: parent.top
                         anchors.bottom: parent.bottom
                         anchors.right: parent.right
-                        visible: index < _repeater.count-1 && !control.flat
+                        visible: index < _repeater.count-1
                         anchors.topMargin:1
                         anchors.bottomMargin: 1
                     }
@@ -297,7 +293,7 @@ Rectangle
                     
                     onClicked: triggerAction()
                     
-                    icon.width:  Maui.Style.iconSizes.small
+                    icon.width: Maui.Style.iconSizes.small
                     icon.height: Maui.Style.iconSizes.small
                     icon.color: buttonAction() ? (buttonAction().icon.color && buttonAction().icon.color.length ? buttonAction().icon.color : ( _defaultButtonMouseArea.containsPress ? control.Kirigami.Theme.highlightColor : control.Kirigami.Theme.textColor)) :  control.Kirigami.Theme.textColor
                     
@@ -320,7 +316,7 @@ Rectangle
                 
                 Kirigami.Separator
                 {
-                    visible: !control.cyclic && !control.flat
+                    visible: !control.cyclic
                     color: control.border.color
                     Layout.fillHeight: true
                 }

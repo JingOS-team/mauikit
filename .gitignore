@@ -1,6 +1,7 @@
 build/
 demo/3rdparty/
 demo/mauikit/
+src/.vscode/
 
 *.kdev4
 *.directory

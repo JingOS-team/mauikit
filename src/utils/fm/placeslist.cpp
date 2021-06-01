@@ -30,7 +30,6 @@
 
 #if defined Q_OS_LINUX && !defined Q_OS_ANDROID
 #include <KFilePlacesModel>
-#include <Solid/Device>
 #endif
 
 #ifdef COMPONENT_TAGGING
@@ -56,6 +55,7 @@ PlacesList::PlacesList(QObject *parent)
      *  So those need to be correctly mapped
      * */
     connect(watcher, &QFileSystemWatcher::directoryChanged, [&](const QString &path) {
+
         if (this->count.contains(QUrl::fromLocalFile(path).toString())) {
             const auto oldCount = this->count[QUrl::fromLocalFile(path).toString()];
             const auto index = this->indexOf(FMH::MODEL_KEY::PATH, QUrl::fromLocalFile(path).toString());
@@ -63,7 +63,7 @@ PlacesList::PlacesList(QObject *parent)
             const auto newCount = dir.count();
             int count = newCount - oldCount;
 
-            this->list[index][FMH::MODEL_KEY::COUNT] = QString::number(std::max(0, count));
+            this->list[index][FMH::MODEL_KEY::COUNT] = QString::number(std::max( 0 , count ));
             emit this->updateModel(index, {FMH::MODEL_KEY::COUNT});
         }
     });
@@ -74,11 +74,6 @@ PlacesList::PlacesList(QObject *parent)
 #endif
 
 #if defined Q_OS_LINUX && !defined Q_OS_ANDROID
-    
-    connect(this->model, &KFilePlacesModel::reloaded, this, &PlacesList::setList);
-
-    connect(this->model, &KFilePlacesModel::setupDone, this, &PlacesList::setList);
-    
     connect(this->model, &KFilePlacesModel::rowsInserted, [this](const QModelIndex, int, int) {
         this->setList();
         emit this->bookmarksChanged();
@@ -104,6 +99,7 @@ PlacesList::PlacesList(QObject *parent)
         }
     });
 #endif
+
 }
 
 void PlacesList::watchPath(const QString &path)
@@ -126,10 +122,11 @@ const FMH::MODEL_LIST &PlacesList::items() const
 }
 
 FMH::MODEL_LIST PlacesList::getGroup(const KFilePlacesModel &model, const FMH::PATHTYPE_KEY &type)
-{
+{    
     FMH::MODEL_LIST res;
 
-    if (type == FMH::PATHTYPE_KEY::QUICK_PATH) {
+    if(type == FMH::PATHTYPE_KEY::QUICK_PATH)
+    {
         res << FMH::MODEL {{FMH::MODEL_KEY::PATH, FMH::PATHTYPE_URI[FMH::PATHTYPE_KEY::TAGS_PATH] + "fav"}, {FMH::MODEL_KEY::ICON, "love"}, {FMH::MODEL_KEY::LABEL, "Favorite"}, {FMH::MODEL_KEY::TYPE, "Quick"}};
 
 #if defined Q_OS_LINUX && !defined Q_OS_ANDROID
@@ -161,31 +158,21 @@ switch (type) {
 }
 #else
 const auto group = model.groupIndexes(static_cast<KFilePlacesModel::GroupType>(type));
-res << std::accumulate(group.constBegin(), group.constEnd(), FMH::MODEL_LIST(), [&model, &type, this](FMH::MODEL_LIST &list, const QModelIndex &index) -> FMH::MODEL_LIST {
+res << std::accumulate(group.constBegin(), group.constEnd(), FMH::MODEL_LIST(), [&model, &type](FMH::MODEL_LIST &list, const QModelIndex &index) -> FMH::MODEL_LIST {
     const QUrl url = model.url(index);
     if (type == FMH::PATHTYPE_KEY::PLACES_PATH && FMH::defaultPaths.contains(url.toString()))
         return list;
 
-    if (type == FMH::PATHTYPE_KEY::PLACES_PATH && url.isLocalFile() && !FMH::fileExists(url))
+    if(type == FMH::PATHTYPE_KEY::PLACES_PATH  && url.isLocalFile() && !FMH::fileExists(url))
         return list;
 
-    auto data = FMH::MODEL {{FMH::MODEL_KEY::PATH, url.toString()},
+    list << FMH::MODEL {{FMH::MODEL_KEY::PATH, url.toString()},
     {FMH::MODEL_KEY::URL, url.toString()},
     {FMH::MODEL_KEY::ICON, model.icon(index).name()},
     {FMH::MODEL_KEY::LABEL, model.text(index)},
     {FMH::MODEL_KEY::NAME, model.text(index)},
     {FMH::MODEL_KEY::TYPE, type == FMH::PATHTYPE_KEY::PLACES_PATH ? FMH::PATHTYPE_LABEL[FMH::PATHTYPE_KEY::BOOKMARKS_PATH] : FMH::PATHTYPE_LABEL[type]}};
 
-    if(model.isDevice(index))
-    {
-        const auto udi =  model.deviceForIndex(index).udi();
-        qDebug() << "DEVICE" << udi;
-
-        data.insert(FMH::MODEL_KEY::UDI, udi);
-        m_devices.insert(udi, index);
-    }
-
-    list << data;
     return list;
 });
 #endif
@@ -195,12 +182,12 @@ return res;
 
 void PlacesList::setList()
 {
-    if (this->groups.isEmpty())
+    if(this->groups.isEmpty())
         return;
 
     qDebug() << "Setting PlacesList model" << groups;
     emit this->preListChanged();
-
+    
     this->list.clear();
 
     for (const auto &group : qAsConst(this->groups)) {
@@ -309,61 +296,4 @@ void PlacesList::removePlace(const int &index)
 bool PlacesList::contains(const QUrl &path)
 {
     return this->exists(FMH::MODEL_KEY::PATH, path.toString());
-}
-
-bool PlacesList::isDevice(const int &index)
-{
-    if (index >= this->list.size() || index < 0)
-        return false;
-
-#if defined Q_OS_LINUX && !defined Q_OS_ANDROID
-    const auto item = this->list.at(index);
-    return m_devices.contains(item[FMH::MODEL_KEY::UDI]);
-#endif
-
-    return false;
-}
-
-bool PlacesList::setupNeeded(const int &index)
-{
-    if (index >= this->list.size() || index < 0)
-        return false;
-
-#if defined Q_OS_LINUX && !defined Q_OS_ANDROID
-    const auto item = this->list.at(index);
-    if(m_devices.contains(item[FMH::MODEL_KEY::UDI]))
-    {
-        return this->model->setupNeeded(m_devices.value(item[FMH::MODEL_KEY::UDI]));
-    }
-#endif
-
-    return false;
-}
-
-void PlacesList::requestEject(const int &index)
-{
-    if (index >= this->list.size() || index < 0)
-        return;
-
-#if defined Q_OS_LINUX && !defined Q_OS_ANDROID
-    const auto item = this->list.at(index);
-    if(m_devices.contains(item[FMH::MODEL_KEY::UDI]))
-    {
-       this->model->requestEject(m_devices.value(item[FMH::MODEL_KEY::UDI]));
-    }
-#endif
-}
-
-void PlacesList::requestSetup(const int &index)
-{
-    if (index >= this->list.size() || index < 0)
-        return;
-
-#if defined Q_OS_LINUX && !defined Q_OS_ANDROID
-    const auto item = this->list.at(index);
-    if(m_devices.contains(item[FMH::MODEL_KEY::UDI]))
-    {
-       this->model->requestSetup(m_devices.value(item[FMH::MODEL_KEY::UDI]));
-    }
-#endif
 }

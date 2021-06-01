@@ -341,12 +341,10 @@ Window
             id: menuBtn
             icon.name: "application-menu"
             checked: _mainMenu.visible
-            focusPolicy: Qt.NoFocus
-            
             onClicked:
             {
-                _mainMenu.popup(parent, 0 , root.headBar.height)
                 menuButtonClicked()
+                _mainMenu.visible ? _mainMenu.close() : _mainMenu.popup(parent, 0 , root.headBar.height )
             }
 
             Menu
@@ -398,8 +396,8 @@ Window
             id: _rightControlsLoader
             visible: active
             active: Maui.App.enableCSD && Maui.App.rightWindowControls.length
-            width: active ? implicitWidth : 0
-            height: parent.height
+            Layout.preferredWidth: active ? implicitWidth : 0
+            Layout.fillHeight: true
             sourceComponent: Maui.WindowControls
             {
                 order: Maui.App.rightWindowControls
@@ -655,8 +653,6 @@ Window
             Layout.fillHeight: true
             Layout.fillWidth: true
             hoverEnabled: true
-            implicitHeight: _notifyTemplate.implicitHeight
-
             Maui.ListItemTemplate
             {
                 id: _notifyTemplate
@@ -664,7 +660,6 @@ Window
                 anchors.fill: parent
 
                 iconSizeHint: Maui.Style.iconSizes.big
-                label2.wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 label1.font.bold: true
                 label1.font.weight: Font.Bold
                 label1.font.pointSize: Maui.Style.fontSizes.big

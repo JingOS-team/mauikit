@@ -90,9 +90,11 @@ private:
     Qt::SortOrder m_sortOrder;
     QString m_sort;
 
-    [[deprecated]] void setFilterString(const QString &string);
+    [[deprecated]]
+    void setFilterString(const QString &string);
 
-    [[deprecated]] void setSortOrder(const int &sortOrder);
+    [[deprecated]]
+    void setSortOrder(const int &sortOrder);
 
 public slots:
     /**
@@ -115,8 +117,8 @@ public slots:
      * Set the sort key. The sort keys can be found in the FMH::MODEL_KEY keys
      * @param sort
      */
-    void setSort(const QString &sort);
-
+    void setSort(const QString &sort);  
+    
     /**
      * @brief get
      * Returns an item in the model/list. This method correctly maps the given index in case the modle has been sorted or filtered
@@ -125,7 +127,7 @@ public slots:
      * @return
      */
     QVariantMap get(const int &index) const;
-
+    
     /**
      * @brief getAll
      * Returns all the items in the list represented as a QVariantList to be able to be used in QML. This operation performs a transformation from FMH::MODEL_LIST to QVariantList
@@ -133,7 +135,7 @@ public slots:
      * All the items in the list
      */
     QVariantList getAll() const;
-
+    
     /**
      * @brief mappedFromSource
      * Maps an index from the base list to the model, incase the modle has been filtered or sorted, this gives you the right mapped index
@@ -141,7 +143,7 @@ public slots:
      * @return
      */
     int mappedFromSource(const int &index) const;
-
+    
     /**
      * @brief mappedToSource
      * given an index from the filtered or sorted model it return the mapped index to the original list index

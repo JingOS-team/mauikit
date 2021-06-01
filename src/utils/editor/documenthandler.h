@@ -57,8 +57,8 @@
 #include <QObject>
 #include <QTextCursor>
 #include <QThread>
-#include <QTimer>
 #include <QUrl>
+#include <QTimer>
 
 #include "mauikit_export.h"
 
@@ -153,7 +153,6 @@ public:
             return labels;
         });
     }
-
 private:
     QString m_title;
     QString m_body;
@@ -266,12 +265,12 @@ class MAUIKIT_EXPORT DocumentHandler : public QObject
     Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
 
     Q_PROPERTY(bool externallyModified READ getExternallyModified WRITE setExternallyModified NOTIFY externallyModifiedChanged)
-
+    
     Q_PROPERTY(bool modified READ getModified NOTIFY modifiedChanged)
-
+    
     Q_PROPERTY(bool autoReload READ getAutoReload WRITE setAutoReload NOTIFY autoReloadChanged)
     Q_PROPERTY(bool autoSave READ autoSave WRITE setAutoSave NOTIFY autoSaveChanged)
-
+    
     Q_PROPERTY(QString formatName READ formatName WRITE setFormatName NOTIFY formatNameChanged)
 
     Q_PROPERTY(int currentLineIndex READ getCurrentLineIndex NOTIFY currentLineIndexChanged)
@@ -437,8 +436,8 @@ public:
      * @param size
      */
     void setFontSize(int size);
-
-    qreal tabSpace() const;
+       
+    qreal tabSpace() const;    
     void setTabSpace(qreal value);
 
     /**
@@ -452,7 +451,7 @@ public:
      * @return
      */
     QString fileType() const;
-
+    
     /**
      * @brief fileUrl
      * @return
@@ -497,7 +496,7 @@ public:
      * @param value
      */
     void setAutoReload(const bool &value);
-
+    
     /**
      * @brief autoSave
      * @return
@@ -636,7 +635,7 @@ public slots:
 signals:
     void documentChanged();
     void fileSaved();
-
+    
     void cursorPositionChanged();
     void selectionStartChanged();
     void selectionEndChanged();
@@ -664,7 +663,7 @@ signals:
 
     void autoReloadChanged();
     void autoSaveChanged();
-
+    
     void externallyModifiedChanged();
 
     void backgroundColorChanged();
@@ -698,15 +697,15 @@ private:
     QFont m_font;
     int m_fontSize = 12;
     qreal m_tabSpace = 8;
-
+    
     QUrl m_fileUrl;
-
+    
     QThread m_worker;
     QString m_text;
 
     bool m_autoReload = false;
     bool m_autoSave = false;
-
+    
     bool m_externallyModified = false;
     bool m_internallyModified = false;
 
@@ -724,9 +723,9 @@ private:
     DocumentAlert *missingAlert();
     DocumentAlert *externallyModifiedAlert();
     DocumentAlert *canNotSaveAlert(const QString &details);
-
+    
     QTimer m_autoSaveTimer;
-
+    
     void refreshAllBlocks();
 };
 

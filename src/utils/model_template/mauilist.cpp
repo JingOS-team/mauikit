@@ -22,8 +22,7 @@
 MauiList::MauiList(QObject *parent)
     : QObject(parent)
     , m_model(nullptr)
-{
-}
+{}
 
 int MauiList::getCount() const
 {
@@ -32,11 +31,13 @@ int MauiList::getCount() const
 
 QVariantMap MauiList::get(const int &index) const
 {
-    if (this->m_model) {
+    if (this->m_model)
+    {
         return this->m_model->get(index);
     }
-
-    if (index >= 0 && this->items().size() > 0 && index < this->items().size()) {
+          
+    if(index >=0 && this->items().size() > 0 && index < this->items().size())
+    {
         return FMH::toMap(this->items()[index]);
     }
 
@@ -45,7 +46,8 @@ QVariantMap MauiList::get(const int &index) const
 
 FMH::MODEL_LIST MauiList::getItems() const
 {
-    if (this->m_model && !this->m_model->getFilter().isEmpty()) {
+    if (this->m_model && !this->m_model->getFilter().isEmpty())
+    {
         return FMH::toModelList(this->m_model->getAll());
     }
 
@@ -75,9 +77,7 @@ bool MauiList::exists(const FMH::MODEL_KEY &key, const QString &value) const
 
 int MauiList::indexOf(const FMH::MODEL_KEY &key, const QString &value) const
 {
-    const auto it = std::find_if(this->items().constBegin(), this->items().constEnd(), [&](const FMH::MODEL &item) -> bool {
-        return item[key] == value;
-    });
+    const auto it = std::find_if(this->items().constBegin(), this->items().constEnd(), [&](const FMH::MODEL &item) -> bool { return item[key] == value; });
 
     if (it != this->items().constEnd())
         return this->mappedIndexFromSource(std::distance(this->items().constBegin(), it));

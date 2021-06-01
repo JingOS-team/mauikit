@@ -27,6 +27,7 @@
 
 namespace UTIL
 {
+
 /**
  * @brief whoami
  * @return

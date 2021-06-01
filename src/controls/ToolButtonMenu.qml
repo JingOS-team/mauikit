@@ -3,7 +3,7 @@ import QtQuick.Controls 2.14
 import QtQuick.Layouts 1.3
 
 import org.kde.kirigami 2.7 as Kirigami
-import org.kde.mauikit 1.3 as Maui
+import org.kde.mauikit 1.0 as Maui
 
 import "private" as Private
 
@@ -17,7 +17,7 @@ import "private" as Private
  *
  *
  */
-ToolButton
+Private.BasicToolButton
 {
     id: control
 
@@ -30,11 +30,9 @@ ToolButton
       * menu : Menu
       */
     property alias menu : _menu
-    
-    focusPolicy: Qt.NoFocus
+
     checked: _menu.visible
-    display: ToolButton.IconOnly
-    
+    display: ToolButton.TextBesideIcon
     onClicked:
     {
         if(_menu.visible)
@@ -43,12 +41,19 @@ ToolButton
             _menu.popup(0, height)
     }
 
+    extraContent: Maui.Triangle
+    {
+        Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+        rotation: -45
+        color: control.kicon.color
+        Layout.preferredWidth: Maui.Style.iconSizes.tiny-3
+        Layout.preferredHeight: Layout.preferredWidth
+    }
+
     Menu
     {
         id: _menu
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
         contentData: control.content
     }
-    
-    Component.onCompleted: control.background.showMenuArrow = true    
 }

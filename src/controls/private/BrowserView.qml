@@ -465,7 +465,7 @@ Maui.Page
                     label1.text: model.label
 
                     anchors.fill: parent
-                    anchors.margins: Maui.Style.space.medium
+                    anchors.margins: Maui.Style.space.big
                     padding: Maui.Style.space.tiny
                     isCurrentItem: parent.isCurrentItem
                     tooltipText: model.path
@@ -755,7 +755,7 @@ Maui.Page
                             readonly property string path : model.path
 
                             width: ListView.view.width
-                            height: control.listItemSize
+                            height: implicitHeight
 
                             iconSource: model.icon
 

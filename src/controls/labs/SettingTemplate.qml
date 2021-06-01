@@ -27,15 +27,12 @@ import org.kde.kirigami 2.7 as Kirigami
 Maui.FlexListItem
 {
     id: control
-    padding: Maui.Style.space.big
-    Layout.fillWidth: true
-    
-    label2.opacity: 0.5
-    
-    background: Rectangle
+    background:  Rectangle
     {
         anchors.fill: parent
         opacity: 0.5
         color: control.enabled ? Qt.tint(control.Kirigami.Theme.textColor, Qt.rgba(control.Kirigami.Theme.backgroundColor.r, control.Kirigami.Theme.backgroundColor.g, control.Kirigami.Theme.backgroundColor.b, 0.9)) :  "transparent"
+        radius: Maui.Style.radiusV
+        border.color: control.enabled ? "transparent" : Qt.tint(control.Kirigami.Theme.textColor, Qt.rgba(control.Kirigami.Theme.backgroundColor.r, control.Kirigami.Theme.backgroundColor.g, control.Kirigami.Theme.backgroundColor.b, 0.9))
     }
 }

@@ -232,7 +232,6 @@ Maui.Dialog
                 text: i18n("Opacity")
                 color: Kirigami.Theme.textColor
             }
-
             middleContent: Slider
             {
                 id: _opacitySlider
@@ -240,6 +239,7 @@ Maui.Dialog
                 value: 1
                 from: 0
                 to: 1
+
             }
 
             rightContent: Label

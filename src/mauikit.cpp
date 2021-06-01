@@ -75,8 +75,8 @@ QUrl MauiKit::componentUrl(const QString &fileName) const
 void MauiKit::initializeEngine(QQmlEngine *engine, const char *uri)
 {
     Q_UNUSED(uri);
-    KLocalizedString::setApplicationDomain("mauikit");
-    engine->rootContext()->setContextObject(new KLocalizedContext(engine));
+    //KLocalizedString::setApplicationDomain("mauikit");
+    // engine->rootContext()->setContextObject(new KLocalizedContext(engine));//会影响依赖这个库的app的多语言设置
 
     /** IMAGE PROVIDERS **/
 #ifdef COMPONENT_FM
@@ -153,7 +153,7 @@ void MauiKit::registerTypes(const char *uri)
     qmlRegisterType(componentUrl(QStringLiteral("labs/SettingTemplate.qml")), uri, 1, 2, "SettingTemplate");
     qmlRegisterType(componentUrl(QStringLiteral("labs/AlternateListItem.qml")), uri, 1, 2, "AlternateListItem");
     qmlRegisterType(componentUrl(QStringLiteral("labs/Separator.qml")), uri, 1, 2, "Separator");
-
+    
     /** 1.3 **/
     qmlRegisterType(componentUrl(QStringLiteral("labs/GalleryRollItem.qml")), uri, 1, 3, "GalleryRollItem");
     qmlRegisterType(componentUrl(QStringLiteral("labs/CollageItem.qml")), uri, 1, 3, "CollageItem");
@@ -163,7 +163,6 @@ void MauiKit::registerTypes(const char *uri)
     qmlRegisterType(componentUrl(QStringLiteral("labs/DoodleCanvas.qml")), uri, 1, 3, "DoodleCanvas");
     qmlRegisterType(componentUrl(QStringLiteral("labs/Doodle.qml")), uri, 1, 3, "Doodle");
     qmlRegisterType(componentUrl(QStringLiteral("labs/FlexListItem.qml")), uri, 1, 3, "FlexListItem");
-    qmlRegisterType(componentUrl(QStringLiteral("labs/Chip.qml")), uri, 1, 3, "Chip");
 
     /// NON UI CONTROLS
     qmlRegisterUncreatableType<AppView>(uri, 1, 1, "AppView", "Cannot be created App");
@@ -234,7 +233,7 @@ void MauiKit::registerTypes(const char *uri)
 #endif
 
     /** DATA MODELING TEMPLATED INTERFACES **/
-    qmlRegisterAnonymousType<MauiList>(uri, 1); // ABSTRACT BASE LIST
+    qmlRegisterAnonymousType<MauiList>(uri, 1);         // ABSTRACT BASE LIST
     qmlRegisterType<MauiModel>(uri, 1, 0, "BaseModel"); // BASE MODEL
 
 #ifdef COMPONENT_TAGGING

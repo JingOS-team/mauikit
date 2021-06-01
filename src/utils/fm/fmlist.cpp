@@ -28,8 +28,8 @@
 #include <KIO/EmptyTrashJob>
 #endif
 
-#include <QFuture>
 #include <QObject>
+#include <QFuture>
 #include <QThread>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QtConcurrent>
@@ -38,7 +38,7 @@ FMList::FMList(QObject *parent)
     : MauiList(parent)
     , fm(new FM(this))
 {
-    qRegisterMetaType<FMList *>("const FMList*"); // this is needed for QML to know of FMList in the search method
+    qRegisterMetaType<FMList*>("const FMList*"); //this is needed for QML to know of FMList in the search method
     connect(this->fm, &FM::cloudServerContentReady, [&](const FMH::MODEL_LIST &list, const QUrl &url) {
         if (this->path == url) {
             this->assignList(list);
@@ -64,8 +64,9 @@ FMList::FMList(QObject *parent)
         }
     });
 
-    connect(this->fm, &FM::pathContentItemsReady, [&](FMH::PATH_CONTENT res) {
-        if (res.path != this->path)
+    connect(this->fm, &FM::pathContentItemsReady, [&](FMH::PATH_CONTENT res)
+    {
+        if(res.path != this->path)
             return;
 
         this->appendToList(res.content);
@@ -73,9 +74,11 @@ FMList::FMList(QObject *parent)
 
     connect(this->fm, &FM::pathContentItemsRemoved, [&](FMH::PATH_CONTENT res) {
         if (res.path != this->path)
+        {
             return;
+        }
 
-        if (!FMH::fileExists(res.path)) {
+        if (!FMH::fileExists(res.path) && !(res.path.toString() == "trash:/")) {//hjy 如果在trash中 因为走这个return逻辑而导致UI不刷新 这里修正这个问题
             this->setStatus({STATUS_CODE::ERROR, "Error", "This URL cannot be listed", "documentinfo", true, false});
             return;
         }
@@ -83,20 +86,14 @@ FMList::FMList(QObject *parent)
         for (const auto &item : qAsConst(res.content)) {
             const auto index = this->indexOf(FMH::MODEL_KEY::PATH, item[FMH::MODEL_KEY::PATH]);
             qDebug() << "SUPOSSED TO REMOVED THIS FORM THE LIST" << index << this->list.count() << item[FMH::MODEL_KEY::PATH];
-
             this->remove(index);
         }
-
         this->setStatus({STATUS_CODE::READY, this->list.isEmpty() ? "Nothing here!" : "", this->list.isEmpty() ? "This place seems to be empty" : "", this->list.isEmpty() ? "folder-add" : "", this->list.isEmpty(), true});
     });
 
-    connect(this->fm, &FM::warningMessage, [&](const QString &message) {
-        emit this->warning(message);
-    });
+    connect(this->fm, &FM::warningMessage, [&](const QString &message) { emit this->warning(message); });
 
-    connect(this->fm, &FM::loadProgress, [&](const int &percent) {
-        emit this->progress(percent);
-    });
+    connect(this->fm, &FM::loadProgress, [&](const int &percent) { emit this->progress(percent); });
 
     connect(this->fm, &FM::pathContentChanged, [&](const QUrl &path) {
         qDebug() << "FOLDER PATH CHANGED" << path;
@@ -125,8 +122,26 @@ void FMList::assignList(const FMH::MODEL_LIST &list)
 
 void FMList::appendToList(const FMH::MODEL_LIST &list)
 {
-    emit this->preItemsAppended(list.size());
-    this->list << list;
+    FMH::MODEL_LIST tmpList = list;
+    if(this->path.toString() == "trash:/")//trash中现在也展示我方生成的缓存图片，但是我们不需要展示。那为什么不在生成的时候，不放进来呢？因为放进来的逻辑,没找到。。。貌似不在这个项目里面，在kfile的那个库里面做的
+    {
+        //  for (const auto &item : qAsConst(list))
+        tmpList.clear();
+         foreach (const auto &item, list)
+         {
+            // QString fileLabel = item[FMH::MODEL_KEY::LABEL];
+            QString hidden = item[FMH::MODEL_KEY::HIDDEN];
+            // if(fileLabel.startsWith(".") && fileLabel.endsWith(".jpg"))
+            if(hidden != "true")
+            {
+                // list.removeOne(item);
+                // list << item;
+                tmpList << item;
+            }
+         }
+    }
+    emit this->preItemsAppended(tmpList.size());
+    this->list << tmpList;
     emit this->postItemAppended();
 }
 
@@ -137,9 +152,8 @@ void FMList::clear()
     emit this->postListChanged();
 }
 
-void FMList::setList()
+void FMList::setList()//hjy 如果要修改可以考虑从这里改
 {
-    qDebug() << "PATHTYPE FOR URL" << pathType << this->path.toString() << this->filters << this;
     this->clear();
 
     switch (this->pathType) {
@@ -156,7 +170,191 @@ void FMList::setList()
         if (!exists)
             this->setStatus({STATUS_CODE::ERROR, "Error", "This URL cannot be listed", "documentinfo", this->list.isEmpty(), exists});
         else {
-            this->fm->getPathContent(this->path, this->hidden, this->onlyDirs, QStringList() << this->filters << FMH::FILTER_LIST[static_cast<FMH::FILTER_TYPE>(this->filterType)]);
+            // this->fm->getPathContent(this->path, this->hidden, this->onlyDirs, QStringList() << this->filters << FMH::FILTER_LIST[static_cast<FMH::FILTER_TYPE>(this->filterType)]);
+
+            //add by hjy start
+            if(pathType == FMList::PATHTYPE::OTHER_PATH)//如果是我方type五连发
+            {
+                if(this->path.toString() == "qrc:/widgets/views/Recents")//Recents功能用Tags来做
+                {
+                    this->assignList(FMStatic::getTagContent("recents_jingos"));//recents_jingos 需要与files的代码同步修改 才能保证功能正常
+                    return;
+                }else if(this->path.toString() == "qrc:/widgets/views/tag0")
+                {
+                    this->assignList(FMStatic::getTagContent("tag0_jingos"));//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                    return;
+                }else if(this->path.toString() == "qrc:/widgets/views/tag1")
+                {
+                    this->assignList(FMStatic::getTagContent("tag1_jingos"));//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                    return;
+                }else if(this->path.toString() == "qrc:/widgets/views/tag2")
+                {
+                    this->assignList(FMStatic::getTagContent("tag2_jingos"));//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                    return;
+                }else if(this->path.toString() == "qrc:/widgets/views/tag3")
+                {
+                    this->assignList(FMStatic::getTagContent("tag3_jingos"));//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                    return;
+                }else if(this->path.toString() == "qrc:/widgets/views/tag4")
+                {
+                    this->assignList(FMStatic::getTagContent("tag4_jingos"));//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                    return;
+                }else if(this->path.toString() == "qrc:/widgets/views/tag5")
+                {
+                    this->assignList(FMStatic::getTagContent("tag5_jingos"));//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                    return;
+                }else if(this->path.toString() == "qrc:/widgets/views/tag6")
+                {
+                    this->assignList(FMStatic::getTagContent("tag6_jingos"));//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                    return;
+                }else if(this->path.toString() == "qrc:/widgets/views/tag7")
+                {
+                    this->assignList(FMStatic::getTagContent("tag7_jingos"));//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                    return;
+                }
+
+
+                QString currentCustomPath = this->path.toString();//记录这次执行的url 如果应用切换目录 url就变化了 那么对比后知道变化了 就停掉这次无用的遍历
+                    QStringList typeFilterList;
+                    if(this->path.toString() == "qrc:/widgets/views/Document")
+                    {
+                        typeFilterList << "type:document";
+                    }
+                    else if(this->path.toString() == "qrc:/widgets/views/Picture")
+                    {
+                        typeFilterList << "type:image";
+                    }else if(this->path.toString() == "qrc:/widgets/views/Video")
+                    {
+                        // typeFilterList << "type:audio OR type:video";
+                        typeFilterList << "type:video";
+                    }else if(this->path.toString() == "qrc:/widgets/views/Music")
+                    {
+                        // typeFilterList << "type:archive";//type:text 如果加上text那么就因为文件太多 炸了 type:spreadsheet--xlsx   presentation--ppt
+                        typeFilterList << "type:audio";
+                    }
+                    QProcess balooProcess;
+                    balooProcess.start("baloosearch", typeFilterList);
+                    if (!balooProcess.waitForStarted())
+                    {
+                        return;
+                    }
+                    balooProcess.closeWriteChannel();
+                    if (!balooProcess.waitForFinished())
+                    {
+                        return;
+                    }
+                    QByteArray bateArray = balooProcess.readAll();
+                    QString result = QString(bateArray);
+                    QStringList pathList = result.split(QLatin1Char('\n'), Qt::SkipEmptyParts);//以“\n”为间隔，分割返回的数据
+                    int count = 0;
+                    foreach (const QString &path, pathList) {
+                        FMH::MODEL model = FMH::getFileInfoModel(QUrl("file://" + path));
+                        if(this->path.toString() == currentCustomPath)
+                        {
+                            this->list << model;
+                            count++;
+                            if(count > 200)
+                            {
+                                emit this->preListChanged();
+                                this->setStatus({STATUS_CODE::READY, this->list.isEmpty() ? "Nothing here!" : "", this->list.isEmpty() ? "This place seems to be empty" : "", this->list.isEmpty() ? "folder-add" : "", this->list.isEmpty(), true});
+                                emit this->postListChanged();
+                                count = 0;
+                            }
+                        }else
+                        {
+                            this->list.removeOne(model);
+                            break;
+                        }    
+                    }
+                    if(this->path.toString() == currentCustomPath)
+                    {
+                        emit this->preListChanged();
+                        this->sortList();
+                        this->setStatus({STATUS_CODE::READY, this->list.isEmpty() ? "Nothing here!" : "", this->list.isEmpty() ? "This place seems to be empty" : "", this->list.isEmpty() ? "folder-add" : "", this->list.isEmpty(), true});
+                        emit this->postListChanged();
+                    }
+
+
+                // QFutureWatcher<uint> *watcher = new QFutureWatcher<uint>;
+                // connect(watcher, &QFutureWatcher<uint>::finished, [&, watcher]()
+                // {
+                //     watcher->deleteLater();
+                // });
+
+                // const auto func = [=]() -> uint
+                // {
+                //     QString currentCustomPath = this->path.toString();//记录这次执行的url 如果应用切换目录 url就变化了 那么对比后知道变化了 就停掉这次无用的遍历
+                //     QStringList typeFilterList;
+                //     if(this->path.toString() == "qrc:/widgets/views/Document")
+                //     {
+                //         typeFilterList << "type:document";
+                //     }
+                //     else if(this->path.toString() == "qrc:/widgets/views/Picture")
+                //     {
+                //         typeFilterList << "type:image";
+                //     }else if(this->path.toString() == "qrc:/widgets/views/Video")
+                //     {
+                //         // typeFilterList << "type:audio OR type:video";
+                //         typeFilterList << "type:video";
+                //     }else if(this->path.toString() == "qrc:/widgets/views/Music")
+                //     {
+                //         // typeFilterList << "type:archive";//type:text 如果加上text那么就因为文件太多 炸了 type:spreadsheet--xlsx   presentation--ppt
+                //         typeFilterList << "type:audio";
+                //     }
+                //     QProcess balooProcess;
+                //     balooProcess.start("baloosearch", typeFilterList);
+                //     if (!balooProcess.waitForStarted())
+                //     {
+                //         return 0;
+                //     }
+                //     balooProcess.closeWriteChannel();
+                //     if (!balooProcess.waitForFinished())
+                //     {
+                //         return 0;
+                //     }
+                //     QByteArray bateArray = balooProcess.readAll();
+                //     QString result = QString(bateArray);
+                //     QStringList pathList = result.split(QLatin1Char('\n'), Qt::SkipEmptyParts);//以“\n”为间隔，分割返回的数据
+                //     int count = 0;
+                //     foreach (const QString &path, pathList) {
+                //         FMH::MODEL model = FMH::getFileInfoModel(QUrl("file://" + path));
+                //         if(this->path.toString() == currentCustomPath)
+                //         {
+                //             this->list << model;
+                //             count++;
+                //             if(count > 200)
+                //             {
+                //                 emit this->preListChanged();
+                //                 this->setStatus({STATUS_CODE::READY, this->list.isEmpty() ? "Nothing here!" : "", this->list.isEmpty() ? "This place seems to be empty" : "", this->list.isEmpty() ? "folder-add" : "", this->list.isEmpty(), true});
+                //                 emit this->postListChanged();
+                //                 count = 0;
+                //             }
+                //         }else
+                //         {
+                //             this->list.removeOne(model);
+                //             break;
+                //         }    
+                //     }
+                //     if(this->path.toString() == currentCustomPath)
+                //     {
+                //         emit this->preListChanged();
+                //         this->sortList();
+                //         this->setStatus({STATUS_CODE::READY, this->list.isEmpty() ? "Nothing here!" : "", this->list.isEmpty() ? "This place seems to be empty" : "", this->list.isEmpty() ? "folder-add" : "", this->list.isEmpty(), true});
+                //         emit this->postListChanged();
+                //         return 0;
+                //     }else
+                //     {
+                //         return -1;
+                //     }
+                // };
+                // QFuture<uint> t1 = QtConcurrent::run(func);
+                // watcher->setFuture(t1);
+            }else//敌方保持原有逻辑
+            {
+                this->fm->getPathContent(this->path, this->hidden, this->onlyDirs, QStringList() << this->filters << FMH::FILTER_LIST[static_cast<FMH::FILTER_TYPE>(this->filterType)]);
+            }
+            //add by hjy end
+
         }
         break; // ASYNC
     }
@@ -192,29 +390,77 @@ void FMList::setSortBy(const FMList::SORTBY &key)
     emit this->postListChanged();
 }
 
-void FMList::sortList()
+Qt::SortOrder FMList::getSortOrder() const
+{
+    return this->m_sortOrder;
+}
+
+void FMList::setSortOrder(const Qt::SortOrder &sortOrder)//add by hjy
+{
+    if (this->m_sortOrder == sortOrder)
+        return;
+
+    emit this->preListChanged();
+    this->m_sortOrder = sortOrder;
+    this->sortList();
+    emit this->sortOrderChanged();
+    emit this->postListChanged();
+}
+
+void FMList::sortList()//hjy 可以考虑在这里改升序降序
 {
     const FMH::MODEL_KEY key = static_cast<FMH::MODEL_KEY>(this->sort);
     auto index = 0;
+    Qt::SortOrder sortOrder = this->m_sortOrder;
 
     if (this->foldersFirst) {
         qSort(this->list.begin(), this->list.end(), [](const FMH::MODEL &e1, const FMH::MODEL &e2) -> bool {
             Q_UNUSED(e2)
             const auto key = FMH::MODEL_KEY::MIME;
             return e1[key] == "inode/directory";
-        });
+        });//这块的逻辑等于是把文件夹都放到一起
 
         for (const auto &item : qAsConst(this->list))
+        {
             if (item[FMH::MODEL_KEY::MIME] == "inode/directory")
                 index++;
             else
                 break;
+        }//获取文件和文件夹的分割位置 下面会分别对文件夹和文件进行排序
 
-        std::sort(this->list.begin(), this->list.begin() + index, [&key](const FMH::MODEL &e1, const FMH::MODEL &e2) -> bool {
+
+        std::sort(this->list.begin(), this->list.begin() + index, [&key, &sortOrder](const FMH::MODEL &e1, const FMH::MODEL &e2) -> bool {//先给文件夹排序
             switch (key) {
             case FMH::MODEL_KEY::SIZE: {
-                if (e1[key].toDouble() > e2[key].toDouble())
-                    return true;
+                if(sortOrder == Qt::AscendingOrder)
+                {
+                    if (e1[key].toDouble() < e2[key].toDouble())
+                    {
+                        return true;
+                    }else if(e1[key].toDouble() == e2[key].toDouble())
+                    {
+                        const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+                        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+                        if (str1 < str2)
+                        {
+                            return true;
+                        }
+                    }
+                }else
+                {
+                    if (e1[key].toDouble() > e2[key].toDouble())
+                    {
+                        return true;
+                    }else if(e1[key].toDouble() == e2[key].toDouble())
+                    {
+                        const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+                        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+                        if (str1 > str2)
+                        {
+                            return true;
+                        }
+                    }
+                }
                 break;
             }
 
@@ -225,9 +471,35 @@ void FMList::sortList()
                 auto date1 = QDateTime::fromString(e1[key], Qt::TextDate);
                 auto date2 = QDateTime::fromString(e2[key], Qt::TextDate);
 
-                if (date1.secsTo(currentTime) < date2.secsTo(currentTime))
-                    return true;
-
+                if(sortOrder == Qt::AscendingOrder)
+                {
+                    if (date1.secsTo(currentTime) > date2.secsTo(currentTime))
+                    {
+                        return true;
+                    }else if(date1.secsTo(currentTime) == date2.secsTo(currentTime))
+                    {
+                        const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+                        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+                        if (str1 < str2)
+                        {
+                            return true;
+                        }
+                    }   
+                }else
+                {
+                    if (date1.secsTo(currentTime) < date2.secsTo(currentTime))
+                    {
+                        return true;
+                    }else if(date1.secsTo(currentTime) == date2.secsTo(currentTime))
+                    {
+                        const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+                        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+                        if (str1 > str2)
+                        {
+                            return true;
+                        }
+                    }   
+                }
                 break;
             }
 
@@ -235,30 +507,172 @@ void FMList::sortList()
                 const auto str1 = QString(e1[key]).toLower();
                 const auto str2 = QString(e2[key]).toLower();
 
-                if (str1 < str2)
-                    return true;
+                if(sortOrder == Qt::AscendingOrder)
+                {
+                     if (str1 < str2)
+                    {
+                        return true;
+                    }
+                }else
+                {
+                     if (str1 > str2)
+                    {
+                        return true;
+                    }
+                }
+                break;
+            }
+
+            case FMH::MODEL_KEY::PLACE: {//用来做自定义的tag排序
+                int e1TagIndex = -1;
+                int e2TagIndex = -1;
+                for(int m = 0; m < 8; m++)
+                {
+                    QString tag = "tag" + QString::number(m) + "_jingos";
+                    if(FMStatic::urlTagExists(e1[FMH::MODEL_KEY::PATH], tag))
+                    {
+                        e1TagIndex = m;
+                    }
+                    if(FMStatic::urlTagExists(e2[FMH::MODEL_KEY::PATH], tag))
+                    {
+                        e2TagIndex = m;
+                    }
+                }
+                if(sortOrder == Qt::AscendingOrder)
+                {
+                    if (e1TagIndex > e2TagIndex)
+                    {
+                        return true;
+                    }else if(e1TagIndex == e2TagIndex)
+                    {
+                        const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+                        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+                        if (str1 < str2)
+                        {
+                            return true;
+                        }
+                    }
+                }else
+                {
+                    if (e1TagIndex < e2TagIndex)
+                    {
+                        return true;
+                    }else if(e1TagIndex == e2TagIndex)
+                    {
+                        const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+                        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+                        if (str1 > str2)
+                        {
+                            return true;
+                        }
+                    }
+                }
                 break;
             }
 
             default:
-                if (e1[key] < e2[key])
-                    return true;
+            {
+                if(sortOrder == Qt::AscendingOrder)
+                {
+                    if (e1[key] < e2[key])
+                    {
+                        return true;
+                    }   
+                }else
+                {
+                    if (e1[key] > e2[key])
+                    {
+                        return true;
+                    }  
+                }
+            }
+                
             }
 
             return false;
         });
     }
 
-    std::sort(this->list.begin() + index, this->list.end(), [key](const FMH::MODEL &e1, const FMH::MODEL &e2) -> bool {
+    std::sort(this->list.begin() + index, this->list.end(), [key, sortOrder](const FMH::MODEL &e1, const FMH::MODEL &e2) -> bool {//给文件排序
         switch (key) {
-        case FMH::MODEL_KEY::MIME:
-            if (e1[key] == "inode/directory")
-                return true;
-            break;
+        case FMH::MODEL_KEY::MIME:{
+            // if (e1[key] == "inode/directory")
+            //     return true;
+            auto str1 = QString(e1[key]).toLower();
+            auto str2 = QString(e2[key]).toLower();
+            auto indexE1 = str1.indexOf("/");
+            auto indexE2 = str2.indexOf("/");
+            if(indexE1 != -1)
+            {
+                str1 = str1.mid(0, indexE1);
+            }
 
+            if(indexE2 != -1)
+            {
+                str2 = str2.mid(0, indexE2);
+            }
+
+            if(sortOrder == Qt::AscendingOrder)
+            {
+                if (str1 < str2)
+                {
+                    return true;
+                }else if(str1 == str2)
+                {
+                    const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+                        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+                        if (str1 < str2)
+                        {
+                            return true;
+                        }
+                }
+            }else
+            {
+                if (str1 > str2)
+                {
+                    return true;
+                }else if(str1 == str2)
+                {
+                    const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+                        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+                        if (str1 > str2)
+                        {
+                            return true;
+                        }
+                }
+            }
+            break;
+        }
         case FMH::MODEL_KEY::SIZE: {
-            if (e1[key].toDouble() > e2[key].toDouble())
-                return true;
+            if(sortOrder == Qt::AscendingOrder)
+            {
+                if (e1[key].toDouble() < e2[key].toDouble())
+                {
+                    return true;
+                }else if(e1[key].toDouble() == e2[key].toDouble())
+                    {
+                        const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+                        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+                        if (str1 < str2)
+                        {
+                            return true;
+                        }
+                    }
+            }else
+            {
+                if (e1[key].toDouble() > e2[key].toDouble())
+                {
+                    return true;
+                }else if(e1[key].toDouble() == e2[key].toDouble())
+                    {
+                        const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+                        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+                        if (str1 > str2)
+                        {
+                            return true;
+                        }
+                    }
+            }
             break;
         }
 
@@ -269,8 +683,35 @@ void FMList::sortList()
             auto date1 = QDateTime::fromString(e1[key], Qt::TextDate);
             auto date2 = QDateTime::fromString(e2[key], Qt::TextDate);
 
-            if (date1.secsTo(currentTime) < date2.secsTo(currentTime))
-                return true;
+            if(sortOrder == Qt::AscendingOrder)
+            {
+                if (date1.secsTo(currentTime) > date2.secsTo(currentTime))
+                {
+                    return true;
+                }else if(date1.secsTo(currentTime) == date2.secsTo(currentTime))
+                    {
+                        const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+                        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+                        if (str1 < str2)
+                        {
+                            return true;
+                        }
+                    }   
+            }else
+            {
+                if (date1.secsTo(currentTime) < date2.secsTo(currentTime))
+                {
+                    return true;
+                }else if(date1.secsTo(currentTime) == date2.secsTo(currentTime))
+                    {
+                        const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+                        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+                        if (str1 > str2)
+                        {
+                            return true;
+                        }
+                    }   
+            }
 
             break;
         }
@@ -279,14 +720,99 @@ void FMList::sortList()
             const auto str1 = QString(e1[key]).toLower();
             const auto str2 = QString(e2[key]).toLower();
 
-            if (str1 < str2)
-                return true;
+            if(sortOrder == Qt::AscendingOrder)
+            {
+                    if (str1 < str2)
+                {
+                    return true;
+                }
+            }else
+            {
+                    if (str1 > str2)
+                {
+                    return true;
+                }
+            }
+            break;
+        }
+
+        case FMH::MODEL_KEY::PLACE: {//用来做自定义的tag排序
+            int e1TagIndex = -1;
+            int e2TagIndex = -1;
+            for(int m = 0; m < 8; m++)
+            {
+                QString tag = "tag" + QString::number(m) + "_jingos";
+                if(FMStatic::urlTagExists(e1[FMH::MODEL_KEY::PATH], tag))
+                {
+                    e1TagIndex = m;
+                }
+                if(FMStatic::urlTagExists(e2[FMH::MODEL_KEY::PATH], tag))
+                {
+                    e2TagIndex = m;
+                }
+            }
+            if(sortOrder == Qt::AscendingOrder)
+            {
+                if (e1TagIndex > e2TagIndex)
+                {
+                    return true;
+                }else if(e1TagIndex == e2TagIndex)
+                    {
+                        const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+                        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+                        if (str1 < str2)
+                        {
+                            return true;
+                        }
+                    }
+            }else
+            {
+                if (e1TagIndex < e2TagIndex)
+                {
+                    return true;
+                }else if(e1TagIndex == e2TagIndex)
+                    {
+                        const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+                        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+                        if (str1 > str2)
+                        {
+                            return true;
+                        }
+                    }
+            }
+
+            // if(sortOrder == Qt::AscendingOrder)
+            // {
+            //     if (e1[FMH::MODEL_KEY::TAGS].toDouble() > e2[FMH::MODEL_KEY::TAGS].toDouble())
+            //     {
+            //         return true;
+            //     }
+            // }else
+            // {
+            //     if (e1[FMH::MODEL_KEY::TAGS].toDouble() < e2[FMH::MODEL_KEY::TAGS].toDouble())
+            //     {
+            //         return true;
+            //     }
+            // }
             break;
         }
 
         default:
-            if (e1[key] < e2[key])
-                return true;
+        {
+            if(sortOrder == Qt::AscendingOrder)
+            {
+                if (e1[key] < e2[key])
+                {
+                    return true;
+                }   
+            }else
+            {
+                if (e1[key] > e2[key])
+                {
+                    return true;
+                }  
+            }
+        }
         }
 
         return false;
@@ -424,6 +950,15 @@ void FMList::refresh()
     emit this->pathChanged();
 }
 
+
+void FMList::refreshItem(const int index, const QUrl &path)
+{
+    FMH::MODEL model = FMH::getFileInfoModel(path);
+    this->list[index] = model;
+    emit this->updateModel(index, FMH::modelRoles(model));
+}
+
+
 void FMList::createDir(const QString &name)
 {
     if (this->pathType == FMList::PATHTYPE::CLOUD_PATH) {
@@ -454,7 +989,7 @@ void FMList::setDirIcon(const int &index, const QString &iconName)
     if (index >= this->list.size() || index < 0)
         return;
 
-    //    const auto index_ = this->mappedIndex(index);
+//    const auto index_ = this->mappedIndex(index);
 
     const auto path = QUrl(this->list.at(index)[FMH::MODEL_KEY::PATH]);
 
@@ -538,17 +1073,98 @@ void FMList::search(const QString &query, const QUrl &path, const bool &hidden, 
 {
     qDebug() << "SEARCHING FOR" << query << path;
 
-    if (!path.isLocalFile()) {
+    if(pathType != FMList::PATHTYPE::OTHER_PATH && !path.isLocalFile()) {//如果是我方type五连发 也需要正常搜索
         qWarning() << "URL recived is not a local file. So search will only filter the content" << path;
         this->filterContent(query, path);
         return;
+    }
+
+    FMH::MODEL_LIST tmpList;
+    if(pathType == FMList::PATHTYPE::OTHER_PATH)//如果是我方type五连发
+    {
+        if(this->path.toString() == "qrc:/widgets/views/Recents")//Recents功能用Tags来做
+        {
+            tmpList = FMStatic::getTagContent("recents_jingos");//recents_jingos 需要与files的代码同步修改 才能保证功能正常
+        }
+        else if(this->path.toString() == "qrc:/widgets/views/tag0")
+        {
+            tmpList = FMStatic::getTagContent("tag0_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+        }else if(this->path.toString() == "qrc:/widgets/views/tag1")
+        {
+            tmpList = FMStatic::getTagContent("tag1_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+        }else if(this->path.toString() == "qrc:/widgets/views/tag2")
+        {
+            tmpList = FMStatic::getTagContent("tag2_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+        }else if(this->path.toString() == "qrc:/widgets/views/tag3")
+        {
+            tmpList = FMStatic::getTagContent("tag3_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+        }else if(this->path.toString() == "qrc:/widgets/views/tag4")
+        {
+            tmpList = FMStatic::getTagContent("tag4_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+        }else if(this->path.toString() == "qrc:/widgets/views/tag5")
+        {
+            tmpList = FMStatic::getTagContent("tag5_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+        }else if(this->path.toString() == "qrc:/widgets/views/tag6")
+        {
+            tmpList = FMStatic::getTagContent("tag6_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+        }else if(this->path.toString() == "qrc:/widgets/views/tag7")
+        {
+            tmpList = FMStatic::getTagContent("tag7_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+        }else
+        {
+            QStringList typeFilterList;
+            if(this->path.toString() == "qrc:/widgets/views/Document")
+            {
+                typeFilterList << "type:document";
+            }
+            else if(this->path.toString() == "qrc:/widgets/views/Picture")
+            {
+                typeFilterList << "type:image";
+            }else if(this->path.toString() == "qrc:/widgets/views/Video")
+            {
+                // typeFilterList << "type:audio OR type:video";
+                typeFilterList << "type:video";
+            }else if(this->path.toString() == "qrc:/widgets/views/Music")
+            {
+                // typeFilterList << "type:archive";//type:text 如果加上text那么就因为文件太多 炸了 type:spreadsheet--xlsx   presentation--ppt
+                typeFilterList << "type:audio";
+            }
+            QProcess balooProcess;
+            balooProcess.start("baloosearch", typeFilterList);
+            if (!balooProcess.waitForStarted())
+            {
+                return;
+            }
+            balooProcess.closeWriteChannel();
+            if (!balooProcess.waitForFinished())
+            {
+                return;
+            }
+            QByteArray bateArray = balooProcess.readAll();
+            QString result = QString(bateArray);
+            QStringList pathList = result.split(QLatin1Char('\n'), Qt::SkipEmptyParts);//以“\n”为间隔，分割返回的数据
+            foreach (const QString &path, pathList) {
+                FMH::MODEL model = FMH::getFileInfoModel(QUrl("file://" + path));
+                tmpList << model;
+            }
+        }
     }
 
     QFutureWatcher<FMH::PATH_CONTENT> *watcher = new QFutureWatcher<FMH::PATH_CONTENT>;
     connect(watcher, &QFutureWatcher<FMH::MODEL_LIST>::finished, [=]() {
         const auto res = watcher->future().result();
 
-        this->assignList(res.content);
+        
+        if(pathType == FMList::PATHTYPE::OTHER_PATH)//如果是我方type五连发
+        {
+            this->list = res.content;
+            this->sortList();
+            this->setStatus({STATUS_CODE::READY, this->list.isEmpty() ? "Nothing here!" : "", this->list.isEmpty() ? "This place seems to be empty" : "", this->list.isEmpty() ? "folder-add" : "", this->list.isEmpty(), true});
+            this->filterContent(query, path);
+        }else
+        {
+            this->assignList(res.content);
+        }
         emit this->searchResultReady();
 
         watcher->deleteLater();
@@ -557,7 +1173,90 @@ void FMList::search(const QString &query, const QUrl &path, const bool &hidden, 
     QFuture<FMH::PATH_CONTENT> t1 = QtConcurrent::run([=]() -> FMH::PATH_CONTENT {
         FMH::PATH_CONTENT res;
         res.path = path.toString();
-        res.content = FMStatic::search(query, path, hidden, onlyDirs, filters);
+        if(pathType == FMList::PATHTYPE::OTHER_PATH)//如果是我方type五连发
+        {
+            if(this->path.toString() == "qrc:/widgets/views/Recents")//Recents功能用Tags来做
+            {
+                // res.content = FMStatic::getTagContent("recents_jingos");//recents_jingos 需要与files的代码同步修改 才能保证功能正常
+                res.content = tmpList;
+            }
+            else if(this->path.toString() == "qrc:/widgets/views/tag0")
+            {
+                // res.content = FMStatic::getTagContent("tag0_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                res.content = tmpList;
+            }else if(this->path.toString() == "qrc:/widgets/views/tag1")
+            {
+                // res.content = FMStatic::getTagContent("tag1_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                res.content = tmpList;
+            }else if(this->path.toString() == "qrc:/widgets/views/tag2")
+            {
+                // res.content = FMStatic::getTagContent("tag2_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                res.content = tmpList;
+            }else if(this->path.toString() == "qrc:/widgets/views/tag3")
+            {
+                // res.content = FMStatic::getTagContent("tag3_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                res.content = tmpList;
+            }else if(this->path.toString() == "qrc:/widgets/views/tag4")
+            {
+                // res.content = FMStatic::getTagContent("tag4_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                res.content = tmpList;
+            }else if(this->path.toString() == "qrc:/widgets/views/tag5")
+            {
+                // res.content = FMStatic::getTagContent("tag5_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                res.content = tmpList;
+            }else if(this->path.toString() == "qrc:/widgets/views/tag6")
+            {
+                // res.content = FMStatic::getTagContent("tag6_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                res.content = tmpList;
+            }else if(this->path.toString() == "qrc:/widgets/views/tag7")
+            {
+                // res.content = FMStatic::getTagContent("tag7_jingos");//tag如果有修改 需要与files的代码同步修改 才能保证功能正常
+                res.content = tmpList;
+            }
+
+            else
+            {
+                res.content = tmpList;
+                // QStringList typeFilterList;
+                // if(this->path.toString() == "qrc:/widgets/views/Document")
+                // {
+                //     typeFilterList << "type:document";
+                // }
+                // else if(this->path.toString() == "qrc:/widgets/views/Picture")
+                // {
+                //     typeFilterList << "type:image";
+                // }else if(this->path.toString() == "qrc:/widgets/views/Video")
+                // {
+                //     // typeFilterList << "type:audio OR type:video";
+                //     typeFilterList << "type:video";
+                // }else if(this->path.toString() == "qrc:/widgets/views/Music")
+                // {
+                //     // typeFilterList << "type:archive";//type:text 如果加上text那么就因为文件太多 炸了 type:spreadsheet--xlsx   presentation--ppt
+                //     typeFilterList << "type:audio";
+                // }
+                // QProcess balooProcess;
+                // balooProcess.start("baloosearch", typeFilterList);
+                // if (!balooProcess.waitForStarted())
+                // {
+                //     return res;
+                // }
+                // balooProcess.closeWriteChannel();
+                // if (!balooProcess.waitForFinished())
+                // {
+                //     return res;
+                // }
+                // QByteArray bateArray = balooProcess.readAll();
+                // QString result = QString(bateArray);
+                // QStringList pathList = result.split(QLatin1Char('\n'), Qt::SkipEmptyParts);//以“\n”为间隔，分割返回的数据
+                // foreach (const QString &path, pathList) {
+                //     FMH::MODEL model = FMH::getFileInfoModel(QUrl("file://" + path));
+                //     res.content << model;
+                // }
+            }
+        }else
+        {
+            res.content = FMStatic::search(query, path, hidden, onlyDirs, filters);
+        }
         return res;
     });
     watcher->setFuture(t1);
@@ -586,6 +1285,7 @@ void FMList::filterContent(const QString &query, const QUrl &path)
 
         for (const auto &item : qAsConst(this->list)) {
             if (item[FMH::MODEL_KEY::LABEL].contains(query, Qt::CaseInsensitive) || item[FMH::MODEL_KEY::SUFFIX].contains(query, Qt::CaseInsensitive) || item[FMH::MODEL_KEY::MIME].contains(query, Qt::CaseInsensitive)) {
+
                 m_content << item;
             }
         }

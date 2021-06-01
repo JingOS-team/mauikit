@@ -22,6 +22,7 @@
 #include "fmh.h"
 #include "mauilist.h"
 #include <QObject>
+#include <QFuture>
 
 class FM;
 
@@ -82,6 +83,7 @@ struct NavHistory {
 private:
     QVector<QUrl> prev_history;
     QVector<QUrl> post_history;
+
 };
 
 /**
@@ -110,6 +112,8 @@ class FMList : public MauiList
     Q_PROPERTY(PathStatus status READ getStatus NOTIFY statusChanged FINAL)
 
     Q_PROPERTY(QUrl parentPath READ getParentPath NOTIFY pathChanged)
+
+    Q_PROPERTY(Qt::SortOrder sortOrder READ getSortOrder WRITE setSortOrder NOTIFY sortOrderChanged)//add by hjy
 
 public:
     enum SORTBY : uint_fast8_t {
@@ -188,6 +192,10 @@ public:
      * @param key
      */
     void setSortBy(const FMList::SORTBY &key);
+
+    void setSortOrder(const Qt::SortOrder &sortOrder);//add by hjy
+
+    Qt::SortOrder getSortOrder() const;//add by hjy
 
     /**
      * @brief componentComplete
@@ -315,7 +323,7 @@ public:
      */
     void setCloudDepth(const int &value);
 
-    /**
+       /**
      * @brief getStatus
      * Get the current status of the current path
      * @return
@@ -355,6 +363,8 @@ private:
 
     NavHistory m_navHistory;
 
+    Qt::SortOrder m_sortOrder = Qt::AscendingOrder;//add by hjy 升降序
+
 public slots:
 
     /**
@@ -362,6 +372,8 @@ public slots:
      * Refresh the model for new changes
      */
     void refresh();
+
+    void refreshItem(const int index, const QUrl &path);//add by hjy
 
     /**
      * @brief createDir
@@ -413,14 +425,14 @@ public slots:
      * The information of the model where the search is going to be performed
      */
     void search(const QString &query, const FMList *currentFMList);
-
+    
     /**
      * @brief previousPath
      * Inmediate previous path
      * @return
      */
     const QUrl previousPath();
-
+    
     /**
      * @brief posteriorPath
      * Inmediate posterior path
@@ -445,6 +457,8 @@ signals:
     void progress(int percent);
 
     void searchResultReady();
+
+    void sortOrderChanged();//add by hjy
 };
 
 #endif // FMLIST_H

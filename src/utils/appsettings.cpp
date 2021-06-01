@@ -1,9 +1,7 @@
 #include "appsettings.h"
 
-SettingSection::SettingSection(QObject *parent)
-    : QObject(parent)
-{
-}
+SettingSection::SettingSection(QObject *parent) : QObject(parent)
+{}
 
 QString SettingSection::key() const
 {

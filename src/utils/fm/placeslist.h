@@ -21,7 +21,6 @@
 
 #include "mauilist.h"
 #include <QObject>
-#include <QModelIndex>
 
 class FM;
 class KFilePlacesModel;
@@ -81,13 +80,6 @@ public slots:
      */
     bool contains(const QUrl &path);
 
-    bool isDevice(const int &index);
-
-    bool setupNeeded(const int &index);
-
-    void requestEject (const int &index);
-
-    void requestSetup (const int &index);
 
 private:
     FM *fm;
@@ -97,14 +89,12 @@ private:
 
     QList<int> groups;
 
-    QHash<QString, QModelIndex> m_devices;
-
     QFileSystemWatcher *watcher;
     void watchPath(const QString &path);
 
     void setCount();
 
-    FMH::MODEL_LIST getGroup(const KFilePlacesModel &model, const FMH::PATHTYPE_KEY &type);
+    static FMH::MODEL_LIST getGroup(const KFilePlacesModel &model, const FMH::PATHTYPE_KEY &type);
 
 signals:
     void groupsChanged();

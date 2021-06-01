@@ -100,14 +100,15 @@ Maui.ToolBar
         }
     }
 
+    leftSretch: false
     rightContent: [
     MouseArea
     {
         visible: control.allowEditMode && tagsList.visible
         hoverEnabled: true
         onClicked: addClicked()
-        implicitHeight: implicitWidth
-        implicitWidth: Maui.Style.iconSizes.medium
+        Layout.fillHeight: true
+        Layout.preferredWidth: visible ? height : 0
 
         Maui.PlusSign
         {

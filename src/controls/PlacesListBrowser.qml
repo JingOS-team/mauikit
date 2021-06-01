@@ -72,7 +72,7 @@ Maui.ListBrowser
 
     onItemClicked:
     {
-        var item = placesModel.get(index)
+        var item = list.get(index)
         var path = item.path
 
         placesList.clearBadgeCount(index)
