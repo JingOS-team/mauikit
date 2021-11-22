@@ -18,15 +18,17 @@ AccountsDB::AccountsDB(QObject *parent)
 #endif
 
     QDir collectionDBPath_dir(FMPath.toLocalFile());
-    if (!collectionDBPath_dir.exists())
+    if (!collectionDBPath_dir.exists()) {
         collectionDBPath_dir.mkpath(".");
+    }
 
     this->name = QUuid::createUuid().toString();
     if (!FMH::fileExists(FMPath.toLocalFile() + DBName)) {
         this->openDB(this->name);
         this->prepareCollectionDB();
-    } else
+    } else {
         this->openDB(this->name);
+    }
 }
 
 AccountsDB::~AccountsDB()
@@ -42,8 +44,9 @@ void AccountsDB::openDB(const QString &name)
     }
 
     if (!this->m_db.isOpen()) {
-        if (!this->m_db.open())
+        if (!this->m_db.open()) {
             qDebug() << "ERROR OPENING DB" << this->m_db.lastError().text() << m_db.connectionName();
+        }
     }
     auto query = this->getQuery("PRAGMA synchronous=OFF");
     query.exec();
@@ -84,20 +87,24 @@ void AccountsDB::prepareCollectionDB() const
             cleanedLine = readLine.trimmed();
             strings = cleanedLine.split("--");
             cleanedLine = strings.at(0);
-            if (!cleanedLine.startsWith("--") && !cleanedLine.startsWith("DROP") && !cleanedLine.isEmpty())
+            if (!cleanedLine.startsWith("--") && !cleanedLine.startsWith("DROP") && !cleanedLine.isEmpty()) {
                 line += cleanedLine;
-            if (cleanedLine.endsWith(";"))
+            }
+            if (cleanedLine.endsWith(";")) {
                 break;
-            if (cleanedLine.startsWith("COMMIT"))
+            }
+            if (cleanedLine.startsWith("COMMIT")) {
                 hasText = true;
+            }
         }
         if (!line.isEmpty()) {
             if (!query.exec(line)) {
                 qDebug() << "exec failed" << query.lastQuery() << query.lastError();
             }
 
-        } else
+        } else {
             qDebug() << "exec wrong" << query.lastError();
+        }
     }
     file.close();
 }
@@ -108,10 +115,12 @@ bool AccountsDB::checkExistance(const QString &tableName, const QString &searchI
     auto query = this->getQuery(queryStr);
 
     if (query.exec()) {
-        if (query.next())
+        if (query.next()) {
             return true;
-    } else
+        }
+    } else {
         qDebug() << query.lastError().text();
+    }
 
     return false;
 }
@@ -121,10 +130,12 @@ bool AccountsDB::checkExistance(const QString &queryStr)
     auto query = this->getQuery(queryStr);
 
     if (query.exec()) {
-        if (query.next())
+        if (query.next()) {
             return true;
-    } else
+        }
+    } else {
         qDebug() << query.lastError().text();
+    }
 
     return false;
 }
@@ -138,11 +149,9 @@ QSqlQuery AccountsDB::getQuery(const QString &queryTxt)
 bool AccountsDB::insert(const QString &tableName, const QVariantMap &insertData)
 {
     if (tableName.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on insert! The table name is empty!");
         return false;
 
     } else if (insertData.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on insert! The insertData is empty!");
         return false;
     }
 
@@ -150,16 +159,18 @@ bool AccountsDB::insert(const QString &tableName, const QVariantMap &insertData)
     QStringList fields = insertData.keys();
     QVariantList values = insertData.values();
     int totalFields = fields.size();
-    for (int i = 0; i < totalFields; ++i)
+    for (int i = 0; i < totalFields; ++i) {
         strValues.append("?");
+    }
 
     QString sqlQueryString = "INSERT INTO " + tableName + " (" + QString(fields.join(",")) + ") VALUES(" + QString(strValues.join(",")) + ")";
     QSqlQuery query(this->m_db);
     query.prepare(sqlQueryString);
 
     int k = 0;
-    foreach (const QVariant &value, values)
+    foreach (const QVariant &value, values) {
         query.bindValue(k++, value);
+    }
 
     return query.exec();
 }
@@ -167,26 +178,25 @@ bool AccountsDB::insert(const QString &tableName, const QVariantMap &insertData)
 bool AccountsDB::update(const QString &tableName, const FMH::MODEL &updateData, const QVariantMap &where)
 {
     if (tableName.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on insert! The table name is empty!");
         return false;
     } else if (updateData.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on insert! The insertData is empty!");
         return false;
     }
 
     QStringList set;
     const auto updateKeys = updateData.keys();
-    for (const auto &key : updateKeys)
+    for (const auto &key : updateKeys) {
         set.append(FMH::MODEL_NAME[key] + " = '" + updateData[key] + "'");
+    }
 
     QStringList condition;
     const auto keys = where.keys();
-    for (const auto &key : keys)
+    for (const auto &key : keys) {
         condition.append(key + " = '" + where[key].toString() + "'");
+    }
 
     QString sqlQueryString = "UPDATE " + tableName + " SET " + QString(set.join(",")) + " WHERE " + QString(condition.join(","));
     auto query = this->getQuery(sqlQueryString);
-    qDebug() << sqlQueryString;
     return query.exec();
 }
 
@@ -200,11 +210,9 @@ bool AccountsDB::update(const QString &table, const QString &column, const QVari
 bool AccountsDB::remove(const QString &tableName, const FMH::MODEL &removeData)
 {
     if (tableName.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on removing! The table name is empty!");
         return false;
 
     } else if (removeData.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on insert! The removeData is empty!");
         return false;
     }
 
@@ -215,12 +223,12 @@ bool AccountsDB::remove(const QString &tableName, const FMH::MODEL &removeData)
         strValues.append(QString("%1 = \"%2\"").arg(FMH::MODEL_NAME[key], removeData[key]));
         i++;
 
-        if (removeData.keys().size() > 1 && i < removeData.keys().size())
+        if (removeData.keys().size() > 1 && i < removeData.keys().size()) {
             strValues.append(" AND ");
+        }
     }
 
     QString sqlQueryString = "DELETE FROM " + tableName + " WHERE " + strValues;
-    qDebug() << sqlQueryString;
 
     return this->getQuery(sqlQueryString).exec();
 }

@@ -3,7 +3,9 @@
 NitruxDark::NitruxDark(QObject *parent)
     : Kirigami::PlatformTheme(parent)
 {
-    for (auto group : {QPalette::Active, QPalette::Inactive, QPalette::Disabled}) {
+    for (auto group : {
+                QPalette::Active, QPalette::Inactive, QPalette::Disabled
+            }) {
         lightPalette.setColor(group, QPalette::WindowText, "#00FF00");
         lightPalette.setColor(group, QPalette::Window, "#00FF00");
         lightPalette.setColor(group, QPalette::Base, "#00FF00");

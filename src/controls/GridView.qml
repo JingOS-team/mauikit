@@ -248,7 +248,6 @@ Item
 
             onPositionChanged:
             {
-                console.log("===>" +_hoverHandler.point.pressPosition.y, _hoverHandler.point.sceneGrabPosition.y, position.y, _hoverHandler.point.scenePressPosition)
                 if(_hoverHandler.hovered && !controlView.moving && _hoverHandler.point.pressPosition.y != position.y)
                 {
                     const index = controlView.indexAt(position.x, position.y)

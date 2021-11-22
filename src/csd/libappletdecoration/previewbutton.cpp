@@ -222,7 +222,6 @@ void PreviewButtonItem::setScheme(QString scheme)
 
     if (m_client) {
         m_client->setColorScheme(m_scheme);
-        qDebug() << "buttons scheme update to:" << m_scheme;
 
         //! update decoration
         if (m_sharedDecoration) {

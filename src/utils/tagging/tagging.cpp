@@ -1,5 +1,6 @@
 /*
  *   Copyright 2018 Camilo Higuita <milo.h@aol.com>
+ *   Copyright 2021 Zhang He Gang <zhanghegang@jingos.com>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,19 +40,22 @@ const QVariantList Tagging::get(const QString &queryTxt, std::function<bool(QVar
             QVariantMap data;
             const auto keys = FMH::MODEL_NAME.keys();
             for (const auto &key : keys) {
-                if (query.record().indexOf(FMH::MODEL_NAME[key]) > -1)
+                if (query.record().indexOf(FMH::MODEL_NAME[key]) > -1) {
                     data[FMH::MODEL_NAME[key]] = query.value(FMH::MODEL_NAME[key]).toString();
+                }
             }
 
             if (modifier) {
-                if (!modifier(data))
+                if (!modifier(data)) {
                     continue;
+                }
             }
             mapList << data;
         }
 
-    } else
+    } else {
         qDebug() << query.lastError() << query.lastQuery();
+    }
 
     return mapList;
 }
@@ -59,17 +63,17 @@ const QVariantList Tagging::get(const QString &queryTxt, std::function<bool(QVar
 bool Tagging::tagExists(const QString &tag, const bool &strict)
 {
     return !strict ? this->checkExistance(TAG::TABLEMAP[TAG::TABLE::TAGS], FMH::MODEL_NAME[FMH::MODEL_KEY::TAG], tag)
-            : this->checkExistance(QString("select t.tag from TAGS t inner join TAGS_USERS tu on t.tag = tu.tag inner join APPS_USERS au on au.mac = tu.mac "
-            "where au.app = '%1' and au.uri = '%2' and t.tag = '%3'")
-            .arg(this->application, this->uri, tag));
+           : this->checkExistance(QString("select t.tag from TAGS t inner join TAGS_USERS tu on t.tag = tu.tag inner join APPS_USERS au on au.mac = tu.mac "
+                                          "where au.app = '%1' and au.uri = '%2' and t.tag = '%3'")
+                                  .arg(this->application, this->uri, tag));
 }
 
 bool Tagging::urlTagExists(const QString &url, const QString &tag, const bool &strict)
 {
     return !strict ? this->checkExistance(QString("select * from TAGS_URLS where url = '%1' and tag = '%2'").arg(url, tag))
-                   : this->checkExistance(QString("select t.tag from TAGS t inner join TAGS_USERS tu on t.tag = tu.tag inner join APPS_USERS au on au.mac = tu.mac "
-                                                  "where au.app = '%1' and au.uri = '%2' and t.tag = '%3'")
-                                          .arg(this->application, this->uri, tag));
+           : this->checkExistance(QString("select t.tag from TAGS t inner join TAGS_USERS tu on t.tag = tu.tag inner join APPS_USERS au on au.mac = tu.mac "
+                                          "where au.app = '%1' and au.uri = '%2' and t.tag = '%3'")
+                                  .arg(this->application, this->uri, tag));
 }
 
 void Tagging::setApp()
@@ -83,8 +87,9 @@ void Tagging::setApp()
 
 bool Tagging::tag(const QString &tag, const QString &color, const QString &comment)
 {
-    if (tag.isEmpty())
+    if (tag.isEmpty()) {
         return false;
+    }
 
     QVariantMap tag_map {
         {FMH::MODEL_NAME[FMH::MODEL_KEY::TAG], tag},
@@ -98,7 +103,7 @@ bool Tagging::tag(const QString &tag, const QString &color, const QString &comme
 
     QVariantMap tag_user_map {{FMH::MODEL_NAME[FMH::MODEL_KEY::TAG], tag}, {FMH::MODEL_NAME[FMH::MODEL_KEY::MAC], this->id()}};
     if (this->insert(TAG::TABLEMAP[TAG::TABLE::TAGS_USERS], tag_user_map)) {
-        setTagIconName(tag_map);        
+        setTagIconName(tag_map);
         emit this->tagged(tag_map);
         return true;
     }
@@ -116,21 +121,44 @@ bool Tagging::tagUrl(const QString &url, const QString &tag, const QString &colo
     auto mime = mimedb.mimeTypeForFile(url);
 
     QVariantMap tag_url_map {{FMH::MODEL_NAME[FMH::MODEL_KEY::URL], url},
-                             {FMH::MODEL_NAME[FMH::MODEL_KEY::TAG], myTag},
-                             {FMH::MODEL_NAME[FMH::MODEL_KEY::TITLE], QFileInfo(url).baseName()},
-                             {FMH::MODEL_NAME[FMH::MODEL_KEY::MIME], mime.name()},
-                             {FMH::MODEL_NAME[FMH::MODEL_KEY::ADDDATE], QDateTime::currentDateTime()},
-                             {FMH::MODEL_NAME[FMH::MODEL_KEY::COMMENT], comment}};
+        {FMH::MODEL_NAME[FMH::MODEL_KEY::TAG], myTag},
+        {FMH::MODEL_NAME[FMH::MODEL_KEY::TITLE], QFileInfo(url).baseName()},
+        {FMH::MODEL_NAME[FMH::MODEL_KEY::MIME], mime.name()},
+        {FMH::MODEL_NAME[FMH::MODEL_KEY::ADDDATE], QDateTime::currentDateTime()},
+        {FMH::MODEL_NAME[FMH::MODEL_KEY::COMMENT], comment}};
 
     emit this->urlTagged(url, myTag);
     return this->insert(TAG::TABLEMAP[TAG::TABLE::TAGS_URLS], tag_url_map);
 }
 
+bool Tagging::addUrlTags(const QList<QString> &urls, const QString &tag)
+{
+    const auto myTag = tag.trimmed();
+
+    this->tag(myTag, "", "");
+
+    QMimeDatabase mimedb;
+    QList<QHash<QString,QString>> datas;
+    foreach (QString url, urls) {
+        QHash<QString,QString> data;
+        auto mime = mimedb.mimeTypeForFile(url);
+        data.insert(FMH::MODEL_NAME[FMH::MODEL_KEY::URL],url);
+        data.insert(FMH::MODEL_NAME[FMH::MODEL_KEY::TAG],myTag);
+        data.insert(FMH::MODEL_NAME[FMH::MODEL_KEY::TITLE], QFileInfo(url).baseName());
+        data.insert(FMH::MODEL_NAME[FMH::MODEL_KEY::MIME], mime.name());
+        data.insert(FMH::MODEL_NAME[FMH::MODEL_KEY::ADDDATE], QDateTime::currentDateTime().toString());
+        data.insert(FMH::MODEL_NAME[FMH::MODEL_KEY::COMMENT], comment);
+        datas.append(data);
+    }
+    return this->insertDatas(TAG::TABLEMAP[TAG::TABLE::TAGS_URLS], datas);
+}
+
 bool Tagging::updateUrlTags(const QString &url, const QStringList &tags)
 {
     this->removeUrlTags(url);
-    for (const auto &tag : qAsConst(tags))
+    for (const auto &tag : qAsConst(tags)) {
         this->tagUrl(url, tag);
+    }
 
     return true;
 }
@@ -144,7 +172,7 @@ QVariantList Tagging::getUrlsTags(const bool &strict)
 {
     const auto query = QString("select distinct t.* from TAGS t "
                                "where t.app = '%1'")
-            .arg(this->application);
+                       .arg(this->application);
 
     return !strict ? this->get("select distinct t.* from tags t inner join TAGS_URLS turl on turl.tag = t.tag", &setTagIconName) : this->get(query, &setTagIconName);
 }
@@ -158,31 +186,31 @@ bool Tagging::setTagIconName(QVariantMap &item)
 QVariantList Tagging::getAllTags(const bool &strict)
 {
     return !strict ? this->get("select * from tags group by tag", &setTagIconName)
-                   : this->get(QString("select t.* from TAGS t inner join TAGS_USERS tu on t.tag = tu.tag inner join APPS_USERS au on au.mac = tu.mac and au.app = t.app "
-                                       "where au.app = '%1' and au.uri = '%2'")
-                               .arg(this->application, this->uri),
-                               &setTagIconName);
+           : this->get(QString("select t.* from TAGS t inner join TAGS_USERS tu on t.tag = tu.tag inner join APPS_USERS au on au.mac = tu.mac and au.app = t.app "
+                               "where au.app = '%1' and au.uri = '%2'")
+                       .arg(this->application, this->uri),
+                       &setTagIconName);
 }
 
 QVariantList Tagging::getUrls(const QString &tag, const bool &strict, const int &limit, const QString &mimeType, std::function<bool(QVariantMap &item)> modifier)
 {
     return !strict ? this->get(QString("select distinct * from TAGS_URLS where tag = '%1' and mime like '%2%' limit %3").arg(tag, mimeType, QString::number(limit)), modifier)
-                   : this->get(QString("select distinct turl.*, t.color, t.comment as tagComment from TAGS t "
-                                       "inner join TAGS_USERS tu on t.tag = tu.tag "
-                                       "inner join APPS_USERS au on au.mac = tu.mac and au.app = t.app "
-                                       "inner join TAGS_URLS turl on turl.tag = t.tag "
-                                       "where au.app = '%1' and au.uri = '%2' and turl.mime like '%5%' "
-                                       "and t.tag = '%3' limit %4")
-                               .arg(this->application, this->uri, tag, QString::number(limit), mimeType),
-                               modifier);
+           : this->get(QString("select distinct turl.*, t.color, t.comment as tagComment from TAGS t "
+                               "inner join TAGS_USERS tu on t.tag = tu.tag "
+                               "inner join APPS_USERS au on au.mac = tu.mac and au.app = t.app "
+                               "inner join TAGS_URLS turl on turl.tag = t.tag "
+                               "where au.app = '%1' and au.uri = '%2' and turl.mime like '%5%' "
+                               "and t.tag = '%3' limit %4")
+                       .arg(this->application, this->uri, tag, QString::number(limit), mimeType),
+                       modifier);
 }
 
 QVariantList Tagging::getUrlTags(const QString &url, const bool &strict)
 {
     return !strict ? this->get(QString("select distinct turl.*, t.color, t.comment as tagComment from tags t inner join TAGS_URLS turl on turl.tag = t.tag where turl.url  = '%1'").arg(url))
-                   : this->get(QString("select distinct t.* from TAGS t inner join TAGS_USERS tu on t.tag = tu.tag inner join APPS_USERS au on au.mac = tu.mac and au.app = t.app inner join TAGS_URLS turl on turl.tag = t.tag "
-                                       "where au.app = '%1' and au.uri = '%2' and turl.url = '%3'")
-                               .arg(this->application, this->uri, url));
+           : this->get(QString("select distinct t.* from TAGS t inner join TAGS_USERS tu on t.tag = tu.tag inner join APPS_USERS au on au.mac = tu.mac and au.app = t.app inner join TAGS_URLS turl on turl.tag = t.tag "
+                               "where au.app = '%1' and au.uri = '%2' and turl.url = '%3'")
+                       .arg(this->application, this->uri, url));
 }
 
 bool Tagging::removeUrlTags(const QString &url)
@@ -202,6 +230,18 @@ bool Tagging::removeUrlTag(const QString &url, const QString &tag)
     return this->remove(TAG::TABLEMAP[TAG::TABLE::TAGS_URLS], data);
 }
 
+bool Tagging::removeUrlTags(const QList<QString> &urls, const QString &tag)
+{
+    QList<FMH::MODEL> datas;
+    foreach (QString url, urls) {
+        FMH::MODEL data;
+        data.insert(FMH::MODEL_KEY::URL,url);
+        data.insert(FMH::MODEL_KEY::TAG,tag);
+        datas.append(data);
+    }
+    return this->remove(TAG::TABLEMAP[TAG::TABLE::TAGS_URLS], datas);
+}
+
 bool Tagging::removeUrl(const QString &url)
 {
     return this->remove(TAG::TABLEMAP[TAG::TABLE::TAGS_URLS], {{FMH::MODEL_KEY::URL, url}});
@@ -210,7 +250,6 @@ bool Tagging::removeUrl(const QString &url)
 QString Tagging::mac()
 {
     QNetworkInterface mac;
-    qDebug() << "MAC ADDRES:" << mac.hardwareAddress();
     return mac.hardwareAddress();
 }
 
@@ -222,19 +261,10 @@ QString Tagging::device()
 QString Tagging::id()
 {
     return QSysInfo::machineHostName();
-
-    //    qDebug()<< "VERSION IS LES THAN "<< QT_VERSION;
-
-    //#if QT_VERSION < QT_VERSION_CHECK(5, 1, 1)
-    //    return QSysInfo::machineHostName();
-    //#else
-    //    return QString(QSysInfo::machineUniqueId());
-    //#endif
 }
 
 bool Tagging::app()
 {
-    qDebug() << "REGISTER APP" << this->application << this->uri << this->version << this->comment;
     QVariantMap app_map {
         {FMH::MODEL_NAME[FMH::MODEL_KEY::APP], this->application},
         {FMH::MODEL_NAME[FMH::MODEL_KEY::URI], this->uri},

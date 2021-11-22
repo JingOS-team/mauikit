@@ -107,7 +107,6 @@ Maui.ItemDelegate
       */
     function clearCount()
     {
-        console.log("CLEANING SIDEBAR COUNT")
         control.count = ""
     }
 }

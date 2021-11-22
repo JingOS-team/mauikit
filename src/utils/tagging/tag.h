@@ -1,5 +1,6 @@
 /*
  *   Copyright 2018 Camilo Higuita <milo.h@aol.com>
+ *   Copyright 2021 Zhang He Gang <zhanghegang@jingos.com>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,13 +38,14 @@ namespace TAG
 enum class TABLE : uint8_t { USERS, TAGS_USERS, APPS_USERS, TAGS, TAGS_URLS, APPS, ABSTRACT, TAGS_ABSTRACT, NONE };
 
 static const QMap<TABLE, QString> TABLEMAP = {{TABLE::TAGS, "tags"},
-                                              {TABLE::TAGS_URLS, "tags_urls"},
-                                              {TABLE::USERS, "users"},
-                                              {TABLE::TAGS_USERS, "tags_users"},
-                                              {TABLE::APPS, "apps"},
-                                              {TABLE::ABSTRACT, "abstract"},
-                                              {TABLE::TAGS_ABSTRACT, "tags_abstract"},
-                                              {TABLE::APPS_USERS, "apps_users"}};
+    {TABLE::TAGS_URLS, "tags_urls"},
+    {TABLE::USERS, "users"},
+    {TABLE::TAGS_USERS, "tags_users"},
+    {TABLE::APPS, "apps"},
+    {TABLE::ABSTRACT, "abstract"},
+    {TABLE::TAGS_ABSTRACT, "tags_abstract"},
+    {TABLE::APPS_USERS, "apps_users"}
+};
 
 //enum KEYS : uint_fast8_t { URL, ICON, APP, URI, MAC, LAST_SYNC, NAME, VERSION, LOT, TAG, COLOR, ADD_DATE, COMMENT, MIME, TITLE, DEVICE, KEY }; /* Q_ENUM_NS(KEYS);*/
 

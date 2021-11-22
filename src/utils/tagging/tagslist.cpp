@@ -5,12 +5,10 @@ TagsList::TagsList(QObject *parent) : MauiList(parent)
 {
     this->tag = Tagging::getInstance();
 
-    connect(this->tag, &Tagging::tagged, [&](QVariantMap tag)
-    {   
-        if (this->urls.isEmpty())    
-        {
-            this->append(FMH::toModel(tag));  
-        }   
+    connect(this->tag, &Tagging::tagged, [&](QVariantMap tag) {
+        if (this->urls.isEmpty()) {
+            this->append(FMH::toModel(tag));
+        }
     });
 
     this->setList();
@@ -19,16 +17,16 @@ TagsList::TagsList(QObject *parent) : MauiList(parent)
 void TagsList::setList()
 {
     emit this->preListChanged();
-    
-    if (this->urls.isEmpty())
+
+    if (this->urls.isEmpty()) {
         this->list = FMH::toModelList(this->tag->getAllTags(this->strict));
-    else {
+    } else {
         this->list.clear();
         this->list = std::accumulate(this->urls.constBegin(), this->urls.constEnd(), FMH::MODEL_LIST(), [&](FMH::MODEL_LIST &list, const QString &url) {
             list << FMH::toModelList(this->tag->getUrlTags(url, this->strict));
             return list;
         });
-    }    
+    }
 
     emit this->tagsChanged();
     emit this->postListChanged();
@@ -41,45 +39,53 @@ void TagsList::refresh()
 
 bool TagsList::insert(const QString &tag)
 {
-    if (this->tag->tag(tag.trimmed()))
+    if (this->tag->tag(tag.trimmed())) {
         return true;
+    }
 
     return false;
 }
 
 void TagsList::insertToUrls(const QString &tag)
 {
-    if (urls.isEmpty())
+    if (urls.isEmpty()) {
         return;
+    }
 
-    for (const auto &url : qAsConst(urls))
+    for (const auto &url : qAsConst(urls)) {
         this->tag->tagUrl(url, tag);
+    }
 
     this->refresh();
 }
 
 void TagsList::updateToUrls(const QStringList &tags)
 {
-    if (this->urls.isEmpty())
+    if (this->urls.isEmpty()) {
         return;
+    }
 
-    for (const auto &url : qAsConst(urls))
+    for (const auto &url : qAsConst(urls)) {
         this->tag->updateUrlTags(url, tags);
+    }
 
     this->refresh();
 }
 
 void TagsList::removeFromUrls(const int &index)
 {
-    if (index >= this->list.size() || index < 0)
+    if (index >= this->list.size() || index < 0) {
         return;
+    }
 
-    if (this->urls.isEmpty())
+    if (this->urls.isEmpty()) {
         return;
+    }
 
     const auto tag = this->list[index][FMH::MODEL_KEY::TAG];
-    for (const auto &url : qAsConst(urls))
+    for (const auto &url : qAsConst(urls)) {
         this->tag->removeUrlTag(url, tag);
+    }
 
     this->remove(index);
 }
@@ -92,8 +98,9 @@ void TagsList::removeFromUrls(const QString &tag)
 
 bool TagsList::remove(const int &index)
 {
-    if (index >= this->list.size() || index < 0)
+    if (index >= this->list.size() || index < 0) {
         return false;
+    }
 
     emit this->preItemRemoved(index);
     this->list.removeAt(index);
@@ -105,11 +112,13 @@ bool TagsList::remove(const int &index)
 
 void TagsList::removeFrom(const int &index, const QString &url)
 {
-    if (index >= this->list.size() || index < 0)
+    if (index >= this->list.size() || index < 0) {
         return;
+    }
 
-    if (this->tag->removeUrlTag(url, this->list[index][FMH::MODEL_KEY::TAG]))
+    if (this->tag->removeUrlTag(url, this->list[index][FMH::MODEL_KEY::TAG])) {
         this->remove(index);
+    }
 }
 
 void TagsList::erase(const int &index)
@@ -129,8 +138,9 @@ bool TagsList::getStrict() const
 
 void TagsList::setStrict(const bool &value)
 {
-    if (this->strict == value)
+    if (this->strict == value) {
         return;
+    }
 
     this->strict = value;
     this->setList();
@@ -152,8 +162,9 @@ QStringList TagsList::getUrls() const
 
 void TagsList::setUrls(const QStringList &value)
 {
-    if (this->urls == value)
+    if (this->urls == value) {
         return;
+    }
 
     this->urls = value;
     this->setList();
@@ -167,9 +178,10 @@ void TagsList::append(const QString &tag)
 
 void TagsList::append(const FMH::MODEL &tag)
 {
-    if (this->exists(FMH::MODEL_KEY::TAG, tag[FMH::MODEL_KEY::TAG]))
+    if (this->exists(FMH::MODEL_KEY::TAG, tag[FMH::MODEL_KEY::TAG])) {
         return;
-    
+    }
+
     emit this->preItemAppended();
     this->list << tag;
     emit this->postItemAppended();
@@ -178,8 +190,9 @@ void TagsList::append(const FMH::MODEL &tag)
 
 void TagsList::append(const QStringList &tags)
 {
-    for (const auto &tag : qAsConst(tags))
+    for (const auto &tag : qAsConst(tags)) {
         this->append(tag);
+    }
 }
 
 bool TagsList::contains(const QString& tag)

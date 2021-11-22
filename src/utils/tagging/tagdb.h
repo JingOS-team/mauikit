@@ -1,5 +1,6 @@
 /*
  *   Copyright 2018 Camilo Higuita <milo.h@aol.com>
+ *   Copyright 2021 Zhang He Gang <zhanghegang@jingos.com>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -96,6 +97,8 @@ protected:
      */
     bool insert(const QString &tableName, const QVariantMap &insertData);
 
+    bool insertDatas(const QString &tableName, const QList<QHash<QString, QString>> &insertDatas);
+
     /**
      * @brief update
      * @param tableName
@@ -123,6 +126,7 @@ protected:
      * @return
      */
     bool remove(const QString &tableName, const FMH::MODEL &removeData);
+    bool remove(const QString &tableName, const QList<FMH::MODEL> &removeDatas);
 };
 
 #endif // DB_H

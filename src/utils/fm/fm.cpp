@@ -1,5 +1,6 @@
 /*
  *   Copyright 2018 Camilo Higuita <milo.h@aol.com>
+ *   Copyright 2021 Zhang He Gang <zhanghegang@jingos.com>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -59,26 +60,22 @@ QDirLister::QDirLister(QObject *parent)
 {
     m_loader->setBatchCount(20);
     m_loader->informer = &FMH::getFileInfoModel;
-    connect(m_loader, &FMH::FileLoader::itemsReady, [this](FMH::MODEL_LIST items, QList<QUrl> urls)
-    {
+    connect(m_loader, &FMH::FileLoader::itemsReady, [this](FMH::MODEL_LIST items, QList<QUrl> urls) {
         emit this->itemsReady(items, urls.first());
     });
 
-    connect(m_loader, &FMH::FileLoader::itemReady, [this](FMH::MODEL item, QList<QUrl> urls)
-    {
+    connect(m_loader, &FMH::FileLoader::itemReady, [this](FMH::MODEL item, QList<QUrl> urls) {
         this->m_list << item;
         this->m_watcher->addPath(QUrl(item[FMH::MODEL_KEY::URL]).toLocalFile());
         emit this->itemReady(item, urls.first());
     });
 
-    connect(m_loader, &FMH::FileLoader::finished, [this](FMH::MODEL_LIST, QList<QUrl> urls)
-    {
+    connect(m_loader, &FMH::FileLoader::finished, [this](FMH::MODEL_LIST, QList<QUrl> urls) {
         emit this->completed(urls.first());
     });
 
     connect(this->m_watcher, &QFileSystemWatcher::directoryChanged, [&](const QString &path) {
-        if(path == this->m_url.toLocalFile())
-        {
+        if (path == this->m_url.toLocalFile()) {
             this->reviewChanges();
         }
     });
@@ -86,10 +83,8 @@ QDirLister::QDirLister(QObject *parent)
     connect(this->m_watcher, &QFileSystemWatcher::fileChanged, [&](const QString &path) {
 
         const auto fileUrl = QUrl::fromLocalFile(path);
-        if(this->includes(fileUrl))
-        {
-            if(FMH::fileExists(fileUrl))
-            {
+        if (this->includes(fileUrl)) {
+            if (FMH::fileExists(fileUrl)) {
                 emit this->refreshItems({{this->m_list.at(this->indexOf(FMH::MODEL_KEY::URL, fileUrl.toString())), FMH::getFileInfoModel(fileUrl)}}, this->m_url);
             }
         }
@@ -98,27 +93,23 @@ QDirLister::QDirLister(QObject *parent)
 
 void QDirLister::reviewChanges()
 {
-    if(this->m_checking)
+    if (this->m_checking) {
         return;
+    }
 
     this->m_checking = true;
     auto checkLoader = new FMH::FileLoader;
     checkLoader->informer = &FMH::getFileInfoModel;
 
-    qDebug( ) << "Doign the check" << m_checking;
-
     FMH::MODEL_LIST removedItems;
     const auto mlist = this->m_list; //use a copy to not affect the list indexes on the iterations
-    for(const auto &item : qAsConst(mlist))
-    {
+    for (const auto &item : qAsConst(mlist)) {
         const auto fileUrl = QUrl(item[FMH::MODEL_KEY::URL]);
 
-        if(!FMH::fileExists(fileUrl))
-        {
+        if (!FMH::fileExists(fileUrl)) {
             const auto index = this->indexOf(FMH::MODEL_KEY::URL, fileUrl.toString());
 
-            if(index < this->m_list.count() && index >= 0)
-            {
+            if (index < this->m_list.count() && index >= 0) {
                 removedItems << item;
                 this->m_list.remove(index);
                 this->m_watcher->removePath(fileUrl.toLocalFile());
@@ -126,19 +117,16 @@ void QDirLister::reviewChanges()
         }
     }
 
-    if(!removedItems.isEmpty())
+    if (!removedItems.isEmpty()) {
         emit this->itemsDeleted(removedItems, this->m_url);
+    }
 
-    connect(checkLoader, &FMH::FileLoader::itemsReady, [=](FMH::MODEL_LIST items, QList<QUrl> urls)
-    {
-        if(urls.first() == this->m_url)
-        {
+    connect(checkLoader, &FMH::FileLoader::itemsReady, [=](FMH::MODEL_LIST items, QList<QUrl> urls) {
+        if (urls.first() == this->m_url) {
             FMH::MODEL_LIST newItems;
-            for(const auto &item : qAsConst(items))
-            {
+            for (const auto &item : qAsConst(items)) {
                 const auto fileUrl = QUrl(item[FMH::MODEL_KEY::URL]);
-                if(!this->includes(fileUrl))
-                {
+                if (!this->includes(fileUrl)) {
                     newItems << item;
 
                     this->m_list << item;
@@ -146,8 +134,9 @@ void QDirLister::reviewChanges()
                 }
             }
 
-            if(!newItems.isEmpty())
+            if (!newItems.isEmpty()) {
                 emit this->itemsAdded(newItems, this->m_url);
+            }
         }
 
         checkLoader->deleteLater();
@@ -155,16 +144,16 @@ void QDirLister::reviewChanges()
 
     });
 
-    connect(checkLoader, &FMH::FileLoader::finished, [=](FMH::MODEL_LIST, QList<QUrl>)
-    {
+    connect(checkLoader, &FMH::FileLoader::finished, [=](FMH::MODEL_LIST, QList<QUrl>) {
         checkLoader->deleteLater();
         this->m_checking = false;
     });
 
     QDir::Filters dirFilter = (m_dirOnly ? QDir::AllDirs | QDir::NoDotDot | QDir::NoDot : QDir::Files | QDir::AllDirs | QDir::NoDotDot | QDir::NoDot);
 
-    if (m_showDotFiles)
+    if (m_showDotFiles) {
         dirFilter = dirFilter | QDir::Hidden | QDir::System;
+    }
 
     checkLoader->requestPath({this->m_url}, false, m_nameFilters.isEmpty() ? QStringList() : m_nameFilters.split(" "), dirFilter);
 }
@@ -179,10 +168,11 @@ int QDirLister::indexOf(const FMH::MODEL_KEY &key, const QString &value) const
     const auto items = this->m_list;
     const auto it = std::find_if(items.constBegin(), items.constEnd(), [&](const FMH::MODEL &item) -> bool { return item[key] == value; });
 
-    if (it != items.constEnd())
+    if (it != items.constEnd()) {
         return std::distance(items.constBegin(), it);
-    else
+    } else {
         return -1;
+    }
 }
 
 bool QDirLister::openUrl(const QUrl &url)
@@ -200,13 +190,15 @@ bool QDirLister::openUrl(const QUrl &url)
 
         QDir::Filters dirFilter = (m_dirOnly ? QDir::AllDirs | QDir::NoDotDot | QDir::NoDot : QDir::Files | QDir::AllDirs | QDir::NoDotDot | QDir::NoDot);
 
-        if (m_showDotFiles)
+        if (m_showDotFiles) {
             dirFilter = dirFilter | QDir::Hidden | QDir::System;
+        }
 
         m_loader->requestPath({this->m_url}, false, m_nameFilters.isEmpty() ? QStringList() : m_nameFilters.split(" "), dirFilter);
 
-    } else
+    } else {
         return false;
+    }
 
     return true;
 }
@@ -250,70 +242,63 @@ FM::FM(QObject *parent)
 
     const static auto packItems = [](const KFileItemList &items) -> FMH::MODEL_LIST {
         return std::accumulate(items.constBegin(), items.constEnd(), FMH::MODEL_LIST(), [](FMH::MODEL_LIST &res, const KFileItem &item) -> FMH::MODEL_LIST {
-            res << FMH::getFileInfo(item);
+            if (FMH::getFileInfo(item).size() > 0)
+            {
+                res << FMH::getFileInfo(item);
+            }
             return res;
         });
     };
 
-   connect(dirLister, static_cast<void (KCoreDirLister::*)(const QUrl &)>(&KCoreDirLister::completed), this, [&](QUrl url) {
-       qDebug() << "PATH CONTENT READY" << url;
-       emit this->pathContentReady(url);
-   });
+    connect(dirLister, static_cast<void (KCoreDirLister::*)(const QUrl &)>(&KCoreDirLister::completed), this, [&](QUrl url) {
+        emit this->pathContentReady(url);
+    });
 
-   connect(dirLister, static_cast<void (KCoreDirLister::*)(const QUrl &, const KFileItemList &items)>(&KCoreDirLister::itemsAdded), this, [&](QUrl dirUrl, KFileItemList items) {
-       qDebug() << "MORE ITEMS WERE ADDED 111";
-       emit this->pathContentItemsReady({dirUrl, packItems(items)});
-   });
-
-//    connect(dirLister, static_cast<void (KCoreDirLister::*)(const KFileItemList &items)>(&KCoreDirLister::newItems), [&](KFileItemList items)
-//    {
-//        qDebug()<< "MORE NEW ITEMS WERE ADDED";
-//        for(const auto &item : items)
-//            qDebug()<< "MORE <<" << item.url();
-//        
-//        emit this->pathContentChanged(dirLister->url());
-//    });
+    connect(dirLister, static_cast<void (KCoreDirLister::*)(const QUrl &, const KFileItemList &items)>(&KCoreDirLister::itemsAdded), this, [&](QUrl dirUrl, KFileItemList items) {
+        emit this->pathContentItemsReady({dirUrl, packItems(items)});
+    });
 
     connect(dirLister, static_cast<void (KCoreDirLister::*)(const KFileItemList &items)>(&KCoreDirLister::itemsDeleted), this, [&](KFileItemList items) {
-        qDebug() << "ITEMS WERE DELETED";
         emit this->pathContentItemsRemoved({dirLister->url(), packItems(items)});
     });
 
     connect(dirLister, static_cast<void (KCoreDirLister::*)(const QList<QPair<KFileItem, KFileItem>> &items)>(&KCoreDirLister::refreshItems), this, [&](QList<QPair<KFileItem, KFileItem>> items) {
-        qDebug() << "ITEMS WERE REFRESHED";
 
         const auto res = std::accumulate(
-            items.constBegin(), items.constEnd(), QVector<QPair<FMH::MODEL, FMH::MODEL>>(), [](QVector<QPair<FMH::MODEL, FMH::MODEL>> &list, const QPair<KFileItem, KFileItem> &pair) -> QVector<QPair<FMH::MODEL, FMH::MODEL>> {
-                list << QPair<FMH::MODEL, FMH::MODEL> {FMH::getFileInfo(pair.first), FMH::getFileInfo(pair.second)};
-                return list;
-            });
+        items.constBegin(), items.constEnd(), QVector<QPair<FMH::MODEL, FMH::MODEL>>(), [](QVector<QPair<FMH::MODEL, FMH::MODEL>> &list, const QPair<KFileItem, KFileItem> &pair) -> QVector<QPair<FMH::MODEL, FMH::MODEL>> {
+            list << QPair<FMH::MODEL, FMH::MODEL> {FMH::getFileInfo(pair.first), FMH::getFileInfo(pair.second)};
+            return list;
+        });
 
         emit this->pathContentItemsChanged(res);
     });
 #else
-    connect(dirLister, &QDirLister::itemsReady, this, [&](FMH::MODEL_LIST items, QUrl url) { emit this->pathContentItemsReady({url, items}); });
+    connect(dirLister, &QDirLister::itemsReady, this, [&](FMH::MODEL_LIST items, QUrl url) {
+        emit this->pathContentItemsReady({url, items});
+    });
 
-    connect(dirLister, &QDirLister::completed, this, [&](QUrl url) { emit this->pathContentReady(url);});
+    connect(dirLister, &QDirLister::completed, this, [&](QUrl url) {
+        emit this->pathContentReady(url);
+    });
 
     connect(dirLister, &QDirLister::refreshItems, this, [&](QVector<QPair<FMH::MODEL, FMH::MODEL>> items, QUrl) {
-        qDebug() << "ITEMS WERE REFRESHED";
         emit this->pathContentItemsChanged(items);
     });
 
     connect(dirLister, &QDirLister::itemsAdded, this, [&](FMH::MODEL_LIST items, QUrl url) {
-        qDebug() << "MORE ITEMS WERE ADDED 222";
         emit this->pathContentItemsReady({url, items});
     });
 
     connect(dirLister, &QDirLister::itemsDeleted, this, [&](FMH::MODEL_LIST items, QUrl url) {
-        qDebug() << "ITEMS WERE DELETED";
         emit this->pathContentItemsRemoved({url, items});
     });
 
 #endif
 
 #ifdef COMPONENT_SYNCING
-    connect(this->sync, &Syncing::listReady, [this](const FMH::MODEL_LIST &list, const QUrl &url) { emit this->cloudServerContentReady(list, url); });
+    connect(this->sync, &Syncing::listReady, [this](const FMH::MODEL_LIST &list, const QUrl &url) {
+        emit this->cloudServerContentReady(list, url);
+    });
 
     connect(this->sync, &Syncing::itemReady, [this](const FMH::MODEL &item, const QUrl &url, const Syncing::SIGNAL_TYPE &signalType) {
         switch (signalType) {
@@ -328,8 +313,9 @@ FM::FM(QObject *parent)
         case Syncing::SIGNAL_TYPE::COPY: {
             QVariantMap data;
             const auto keys = item.keys();
-            for (auto key : keys)
+            for (auto key : keys) {
                 data.insert(FMH::MODEL_NAME[key], item[key]);
+            }
 
             //                         this->copy(QVariantList {data}, this->sync->getCopyTo());
             break;
@@ -339,13 +325,21 @@ FM::FM(QObject *parent)
         }
     });
 
-    connect(this->sync, &Syncing::error, [this](const QString &message) { emit this->warningMessage(message); });
+    connect(this->sync, &Syncing::error, [this](const QString &message) {
+        emit this->warningMessage(message);
+    });
 
-    connect(this->sync, &Syncing::progress, [this](const int &percent) { emit this->loadProgress(percent); });
+    connect(this->sync, &Syncing::progress, [this](const int &percent) {
+        emit this->loadProgress(percent);
+    });
 
-    connect(this->sync, &Syncing::dirCreated, [this](const FMH::MODEL &dir, const QUrl &url) { emit this->newItem(dir, url); });
+    connect(this->sync, &Syncing::dirCreated, [this](const FMH::MODEL &dir, const QUrl &url) {
+        emit this->newItem(dir, url);
+    });
 
-    connect(this->sync, &Syncing::uploadReady, [this](const FMH::MODEL &item, const QUrl &url) { emit this->newItem(item, url); });
+    connect(this->sync, &Syncing::uploadReady, [this](const FMH::MODEL &item, const QUrl &url) {
+        emit this->newItem(item, url);
+    });
 #endif
 }
 
@@ -356,8 +350,9 @@ void FM::getPathContent(const QUrl &path, const bool &hidden, const bool &onlyDi
     this->dirLister->setDirOnlyMode(onlyDirs);
     this->dirLister->setNameFilter(filters.join(" "));
 
-    if (this->dirLister->openUrl(path))
+    if (this->dirLister->openUrl(path)) {
         qDebug() << "GETTING PATH CONTENT" << path;
+    }
 }
 
 FMH::MODEL_LIST FM::getAppsPath()
@@ -368,9 +363,9 @@ FMH::MODEL_LIST FM::getAppsPath()
 #else
 
     return FMH::MODEL_LIST {FMH::MODEL {{FMH::MODEL_KEY::ICON, "system-run"},
-                                        {FMH::MODEL_KEY::LABEL, FMH::PATHTYPE_LABEL[FMH::PATHTYPE_KEY::APPS_PATH]},
-                                        {FMH::MODEL_KEY::PATH, FMH::PATHTYPE_URI[FMH::PATHTYPE_KEY::APPS_PATH]},
-                                        {FMH::MODEL_KEY::TYPE, FMH::PATHTYPE_LABEL[FMH::PATHTYPE_KEY::PLACES_PATH]}}};
+            {FMH::MODEL_KEY::LABEL, FMH::PATHTYPE_LABEL[FMH::PATHTYPE_KEY::APPS_PATH]},
+            {FMH::MODEL_KEY::PATH, FMH::PATHTYPE_URI[FMH::PATHTYPE_KEY::APPS_PATH]},
+            {FMH::MODEL_KEY::TYPE, FMH::PATHTYPE_LABEL[FMH::PATHTYPE_KEY::PLACES_PATH]}}};
 #endif
 }
 
@@ -387,8 +382,9 @@ bool FM::getCloudServerContent(const QUrl &path, const QStringList &filters, con
     auto user = __list[1];
     //        auto data = this->get(QString("select * from clouds where user = '%1'").arg(user));
     QVariantList data;
-    if (data.isEmpty())
+    if (data.isEmpty()) {
         return false;
+    }
 
     auto map = data.first().toMap();
 
@@ -416,8 +412,9 @@ void FM::openCloudItem(const QVariantMap &item)
 #ifdef COMPONENT_SYNCING
     FMH::MODEL data;
     const auto keys = item.keys();
-    for (const auto &key : keys)
+    for (const auto &key : keys) {
         data.insert(FMH::MODEL_NAME_KEY[key], item[key].toString());
+    }
 
     this->sync->resolveFile(data, Syncing::SIGNAL_TYPE::OPEN);
 #endif
@@ -448,6 +445,11 @@ QString FM::resolveLocalCloudPath(const QString &path)
 bool FM::cut(const QList<QUrl> &urls, const QUrl &where)
 {
     return FMStatic::cut(urls, where);
+}
+
+bool FM::updateTag(const QList<QUrl> &urls, const QUrl &where)
+{
+    return FMStatic::updateTag(urls, where);
 }
 
 bool FM::copy(const QList<QUrl> &urls, const QUrl &where)

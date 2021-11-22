@@ -50,10 +50,11 @@ static const inline QString whoami()
  */
 static inline void saveSettings(const QString &key, const QVariant &value, const QString &group, const bool &global = false)
 {
-    if (global)
+    if (global) {
         AppSettings::global().save(key, value, group);
-    else
+    } else {
         AppSettings::local().save(key, value, group);
+    }
 }
 
 /**
@@ -66,10 +67,11 @@ static inline void saveSettings(const QString &key, const QVariant &value, const
  */
 static inline const QVariant loadSettings(const QString &key, const QString &group, const QVariant &defaultValue, const bool &global = false)
 {
-    if (global)
+    if (global) {
         return AppSettings::global().load(key, group, defaultValue);
-    else
+    } else {
         return AppSettings::local().load(key, group, defaultValue);
+    }
 }
 
 /**

@@ -41,7 +41,7 @@ private:
 
     bool strict = true;
     QStringList urls = QStringList();
-    
+
     /**
      * @brief append
      * Adds a given list of tags to the model. Tags that already exists in the model are ignored

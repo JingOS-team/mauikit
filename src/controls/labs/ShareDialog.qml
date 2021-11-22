@@ -35,7 +35,6 @@ Item
     {
         if(Maui.Handy.isLinux)
         {
-            console.log(control.urls)
             _shareDialogLoader.item.urls = control.urls
             _shareDialogLoader.item.mimeType = control.mimeType ? control.mimeType : Maui.FM.getFileInfo(control.urls[0]).mime
             _shareDialogLoader.item.open()

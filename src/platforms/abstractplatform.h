@@ -17,32 +17,32 @@ class AbstractPlatform : public QObject
 
 public:
     explicit AbstractPlatform(QObject * parent= nullptr);
-    
+
 public slots:
 
     /**
      * @brief shareFiles
      * @param urls
      */
-   virtual void shareFiles(const QList<QUrl> &urls) = 0;
+    virtual void shareFiles(const QList<QUrl> &urls) = 0;
 
     /**
      * @brief shareText
      * @param urls
      */
-   virtual void shareText(const QString &urls) = 0;
+    virtual void shareText(const QString &urls) = 0;
 
     /**
      * @brief openUrl
      * @param url
      */
-   virtual void openUrl(const QUrl &url) = 0;
+    virtual void openUrl(const QUrl &url) = 0;
 
     /**
      * @brief hasKeyboard
      * @return
      */
-   virtual bool hasKeyboard() = 0;
+    virtual bool hasKeyboard() = 0;
 
     /**
      * @brief hasMouse

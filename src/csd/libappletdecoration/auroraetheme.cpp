@@ -190,7 +190,6 @@ void AuroraeTheme::parseThemeImages()
     QString origBackgroundFilePath = m_themePath + "/decoration." + m_themeType;
 
     if (!QFileInfo(origBackgroundFilePath).exists()) {
-        qDebug() << "Aurorare decoration file was not found for theme: " << m_themeName;
         return;
     }
 

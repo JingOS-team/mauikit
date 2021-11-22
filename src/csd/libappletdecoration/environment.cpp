@@ -37,7 +37,7 @@ Environment::Environment(QObject *parent)
 
 Environment::~Environment()
 {
-    qDebug() << staticMetaObject.className() << "destructed";
+
 }
 
 uint Environment::frameworksVersion() const
@@ -70,7 +70,6 @@ uint Environment::identifyPlasmaDesktopVersion()
     QStringList stringSplit = output.split(" ");
 
     if (stringSplit.count() >= 2) {
-        qDebug() << " /////////////////////////";
         QString cleanVersionString = stringSplit[1].remove("\n");
         QStringList plasmaDesktopVersionParts = cleanVersionString.split(".");
 
@@ -83,14 +82,10 @@ uint Environment::identifyPlasmaDesktopVersion()
                 uint desktopVersion = makeVersion(maj, min, rel);
 
                 QString message("Plasma Desktop version:  " + QString::number(maj) + "." + QString::number(min) + "." + QString::number(rel) + " (" + QString::number(desktopVersion) + ")");
-                qDebug() << message;
-                qDebug() << " /////////////////////////";
 
                 return desktopVersion;
             }
         }
-
-        qDebug() << " /////////////////////////";
     }
 
     return 0;

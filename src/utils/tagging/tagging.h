@@ -1,5 +1,6 @@
 /*
  *   Copyright 2018 Camilo Higuita <milo.h@aol.com>
+ *   Copyright 2021 Zhang He Gang <zhanghegang@jingos.com>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -124,6 +125,7 @@ public:
      */
     Q_INVOKABLE bool tagUrl(const QString &url, const QString &tag, const QString &color = QString(), const QString &comment = QString());
 
+    Q_INVOKABLE bool addUrlTags(const QList<QString> &urls, const QString &tag);
     /* UPDATES */
     /**
      * @brief updateUrlTags
@@ -218,6 +220,7 @@ public:
      */
     Q_INVOKABLE bool removeUrlTag(const QString &url, const QString &tag);
 
+    Q_INVOKABLE bool removeUrlTags(const QList<QString> &urls, const QString &tag);
     /**
      * @brief removeUrl /todo
      * Removes a URL with its associated tags
@@ -267,7 +270,7 @@ private:
 
 protected:
     static bool setTagIconName(QVariantMap &item);
-    
+
 signals:
     void urlTagged(const QString &url, const QString &tag);
     void tagged(const QVariantMap &tag);

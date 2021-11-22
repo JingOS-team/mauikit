@@ -81,7 +81,9 @@ void PreviewBridge::update(KDecoration2::Decoration *decoration, const QRect &ge
 {
     Q_UNUSED(geometry)
 
-    auto it = std::find_if(m_previewButtons.constBegin(), m_previewButtons.constEnd(), [decoration, geometry](PreviewButtonItem *item) { return (item->decoration() == decoration) && (item->visualGeometry().contains(geometry.center())); });
+    auto it = std::find_if(m_previewButtons.constBegin(), m_previewButtons.constEnd(), [decoration, geometry](PreviewButtonItem *item) {
+        return (item->decoration() == decoration) && (item->visualGeometry().contains(geometry.center()));
+    });
 
     if (it != m_previewButtons.constEnd()) {
         (*it)->update();
@@ -112,7 +114,6 @@ void PreviewBridge::setPlugin(const QString &plugin)
     }
 
     m_plugin = plugin;
-    qDebug() << "Plugin changed to: " << m_plugin;
     emit pluginChanged();
 }
 
@@ -245,7 +246,8 @@ void PreviewBridge::configure()
     auto save = [this, kcm] {
         kcm->save();
 
-        if (m_lastCreatedSettings) {
+        if (m_lastCreatedSettings)
+        {
             emit m_lastCreatedSettings->decorationSettings()->reconfigured();
         }
 

@@ -21,10 +21,10 @@ public:
     Platform &operator=(const Platform &) = delete;
     Platform(Platform &&) = delete;
     Platform &operator=(Platform &&) = delete;
-    
+
 
     // AbstractPlatform interface
-public slots:    
+public slots:
     void shareFiles(const QList<QUrl> &urls) override final;
     void shareText(const QString &text) override final;
     void openUrl(const QUrl &url) override final;

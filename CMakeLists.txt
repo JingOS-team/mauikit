@@ -50,7 +50,7 @@ elseif(UNIX)
 endif()
 
 find_package(KF5 ${REQUIRED_KF5_VERSION} REQUIRED COMPONENTS I18n CoreAddons)
-
+kde_enable_exceptions()
 add_subdirectory(src)
 
 ##CMAKE PARTS

@@ -13,15 +13,15 @@ void SyncingList::setList()
     emit this->preListChanged();
 
     this->list = this->fm->getCloudAccounts();
-    qDebug() << "SYNCIGN LIST" << list;
 
     emit this->postListChanged();
 }
 
 QVariantMap SyncingList::get(const int &index) const
 {
-    if (index >= this->list.size() || index < 0)
+    if (index >= this->list.size() || index < 0) {
         return QVariantMap();
+    }
 
     return FMH::toMap(this->list.at(index));
 }

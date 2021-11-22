@@ -1,8 +1,16 @@
+/*
+ * Copyright (C) 2021 Beijing Jingling Information System Technology Co., Ltd. All rights reserved.
+ *
+ * Authors:
+ * Zhang He Gang <zhanghegang@jingos.com>
+ *
+ */
 #ifndef FMSTATIC_H
 #define FMSTATIC_H
 
 #include "fmh.h"
 #include <QObject>
+#include <QMap>
 
 #include "mauikit_export.h"
 
@@ -15,6 +23,7 @@ class MAUIKIT_EXPORT FMStatic : public QObject
     Q_OBJECT
 public:
     explicit FMStatic(QObject *parent = nullptr);
+    static QMap<QString, QHash<QString,QString>> tagUrlMap;
 
 public slots:
     /**
@@ -85,6 +94,8 @@ public slots:
      */
     static bool cut(const QList<QUrl> &urls, const QUrl &where);
 
+    static bool updateTag(const QList<QUrl> &urls, const QUrl &where);
+
     /**
      * @brief cut
      * @param urls
@@ -123,6 +134,8 @@ public slots:
      * Formated into a readable string
      */
     static QString formatSize(const int &size);
+
+    static QString formatSizeForQulonglong(const qulonglong &size);//add by hjy
 
     /**
      * @brief formatTime
@@ -448,7 +461,7 @@ public slots:
      * @return
      * Modle of the tags
      */
-   static FMH::MODEL_LIST getUrlTags(const QUrl &url);
+    static FMH::MODEL_LIST getUrlTags(const QUrl &url);
 
     /**
      * @brief urlTagExists
@@ -473,6 +486,7 @@ public slots:
      * If the operation has been sucessfull
      */
     static bool addTagToUrl(const QString tag, const QUrl &url);
+    static bool addTags(const QString tag,const QList<QString> &urls);
 
     /**
      * @brief removeTagToUrl
@@ -485,6 +499,8 @@ public slots:
      * If the operation has been sucessfull
      */
     static bool removeTagToUrl(const QString tag, const QUrl &url);
+
+    static bool removeTags(const QString tag,const QList<QString> &urls);
 
     /**
      * @brief bookmark
@@ -501,6 +517,8 @@ public slots:
      * The filter type to be mapped to a FMH::FILTER_TYPE
      */
     static QStringList nameFilters(const int &type);
+
+    static void updateTagUrl(QString userTag = "");//add by hjy
 };
 
 #endif // FMSTATIC_H

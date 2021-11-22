@@ -28,7 +28,6 @@ MauiAccounts::MauiAccounts()
 
 MauiAccounts::~MauiAccounts()
 {
-    qDebug() << "DELETING MAUI ACCOUNTS INSTANCE";
     this->db->deleteLater();
     this->db = nullptr;
 }
@@ -42,7 +41,6 @@ void MauiAccounts::setAccounts()
 {
     emit this->preListChanged();
     this->m_data = this->getCloudAccounts();
-    qDebug() << "ACCOUNTS LIST" << this->m_data;
 
     this->m_count = this->m_data.count();
     emit this->countChanged(this->m_count);
@@ -56,12 +54,12 @@ FMH::MODEL_LIST MauiAccounts::getCloudAccounts()
     for (const auto &account : qAsConst(accounts)) {
         auto map = account.toMap();
         res << FMH::MODEL {{FMH::MODEL_KEY::PATH, FMH::PATHTYPE_URI[FMH::PATHTYPE_KEY::CLOUD_PATH] + map[FMH::MODEL_NAME[FMH::MODEL_KEY::USER]].toString()},
-                           {FMH::MODEL_KEY::ICON, "folder-cloud"},
-                           {FMH::MODEL_KEY::LABEL, map[FMH::MODEL_NAME[FMH::MODEL_KEY::USER]].toString()},
-                           {FMH::MODEL_KEY::USER, map[FMH::MODEL_NAME[FMH::MODEL_KEY::USER]].toString()},
-                           {FMH::MODEL_KEY::SERVER, map[FMH::MODEL_NAME[FMH::MODEL_KEY::SERVER]].toString()},
-                           {FMH::MODEL_KEY::PASSWORD, map[FMH::MODEL_NAME[FMH::MODEL_KEY::PASSWORD]].toString()},
-                           {FMH::MODEL_KEY::TYPE, FMH::PATHTYPE_LABEL[FMH::PATHTYPE_KEY::CLOUD_PATH]}};
+            {FMH::MODEL_KEY::ICON, "folder-cloud"},
+            {FMH::MODEL_KEY::LABEL, map[FMH::MODEL_NAME[FMH::MODEL_KEY::USER]].toString()},
+            {FMH::MODEL_KEY::USER, map[FMH::MODEL_NAME[FMH::MODEL_KEY::USER]].toString()},
+            {FMH::MODEL_KEY::SERVER, map[FMH::MODEL_NAME[FMH::MODEL_KEY::SERVER]].toString()},
+            {FMH::MODEL_KEY::PASSWORD, map[FMH::MODEL_NAME[FMH::MODEL_KEY::PASSWORD]].toString()},
+            {FMH::MODEL_KEY::TYPE, FMH::PATHTYPE_LABEL[FMH::PATHTYPE_KEY::CLOUD_PATH]}};
     }
     return res;
 }
@@ -104,14 +102,16 @@ QVariantList MauiAccounts::get(const QString &queryTxt)
             QVariantMap data;
             const auto keys = FMH::MODEL_NAME.keys();
             for (auto key : keys)
-                if (query.record().indexOf(FMH::MODEL_NAME[key]) > -1)
+                if (query.record().indexOf(FMH::MODEL_NAME[key]) > -1) {
                     data[FMH::MODEL_NAME[key]] = query.value(FMH::MODEL_NAME[key]).toString();
+                }
 
             mapList << data;
         }
 
-    } else
+    } else {
         qDebug() << query.lastError() << query.lastQuery();
+    }
 
     return mapList;
 }
@@ -138,11 +138,13 @@ void MauiAccounts::registerAccount(const QVariantMap &account)
 
 void MauiAccounts::setCurrentAccountIndex(const int &index)
 {
-    if (index >= this->m_data.size() || index < 0)
+    if (index >= this->m_data.size() || index < 0) {
         return;
+    }
 
-    if (index == this->m_currentAccountIndex)
+    if (index == this->m_currentAccountIndex) {
         return;
+    }
 
     // make sure the account exists
     this->m_currentAccountIndex = index;
@@ -154,8 +156,9 @@ void MauiAccounts::setCurrentAccountIndex(const int &index)
 
 QVariantMap MauiAccounts::get(const int &index) const
 {
-    if (index >= this->m_data.size() || index < 0)
+    if (index >= this->m_data.size() || index < 0) {
         return QVariantMap();
+    }
     return FMH::toMap(this->m_data.at(index));
 }
 
@@ -164,8 +167,9 @@ QVariantList MauiAccounts::getCloudAccountsList()
     QVariantList res;
 
     const auto data = this->getCloudAccounts();
-    for (const auto &item : data)
+    for (const auto &item : data) {
         res << FMH::toMap(item);
+    }
 
     return res;
 }
@@ -182,8 +186,9 @@ void MauiAccounts::refresh()
 
 void MauiAccounts::removeAccount(const int &index)
 {
-    if (index >= this->m_data.size() || index < 0)
+    if (index >= this->m_data.size() || index < 0) {
         return;
+    }
 
     if (this->removeCloudAccount(this->m_data.at(index)[FMH::MODEL_KEY::SERVER], this->m_data.at(index)[FMH::MODEL_KEY::USER])) {
         this->refresh();
@@ -192,8 +197,9 @@ void MauiAccounts::removeAccount(const int &index)
 
 void MauiAccounts::removeAccountAndFiles(const int &index)
 {
-    if (index >= this->m_data.size() || index < 0)
+    if (index >= this->m_data.size() || index < 0) {
         return;
+    }
 
     if (this->removeCloudAccount(this->m_data.at(index)[FMH::MODEL_KEY::SERVER], this->m_data.at(index)[FMH::MODEL_KEY::USER])) {
         this->refresh();

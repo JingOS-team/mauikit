@@ -39,16 +39,16 @@ ButtonsModel::ButtonsModel(const QVector<KDecoration2::DecorationButtonType> &bu
 
 ButtonsModel::ButtonsModel(QObject *parent)
     : ButtonsModel(QVector<KDecoration2::DecorationButtonType>({KDecoration2::DecorationButtonType::Menu,
-                                                                KDecoration2::DecorationButtonType::ApplicationMenu,
-                                                                KDecoration2::DecorationButtonType::OnAllDesktops,
-                                                                KDecoration2::DecorationButtonType::Minimize,
-                                                                KDecoration2::DecorationButtonType::Maximize,
-                                                                KDecoration2::DecorationButtonType::Close,
-                                                                KDecoration2::DecorationButtonType::ContextHelp,
-                                                                KDecoration2::DecorationButtonType::Shade,
-                                                                KDecoration2::DecorationButtonType::KeepBelow,
-                                                                KDecoration2::DecorationButtonType::KeepAbove}),
-                   parent)
+    KDecoration2::DecorationButtonType::ApplicationMenu,
+    KDecoration2::DecorationButtonType::OnAllDesktops,
+    KDecoration2::DecorationButtonType::Minimize,
+    KDecoration2::DecorationButtonType::Maximize,
+    KDecoration2::DecorationButtonType::Close,
+    KDecoration2::DecorationButtonType::ContextHelp,
+    KDecoration2::DecorationButtonType::Shade,
+    KDecoration2::DecorationButtonType::KeepBelow,
+    KDecoration2::DecorationButtonType::KeepAbove}),
+parent)
 {
 }
 

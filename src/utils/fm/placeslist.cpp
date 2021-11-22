@@ -42,13 +42,13 @@ PlacesList::PlacesList(QObject *parent)
     , fm(new FM(this))
     , model(nullptr)
     , watcher(new QFileSystemWatcher(this))
-    #else
+#else
 PlacesList::PlacesList(QObject *parent)
     : MauiList(parent)
     , fm(new FM(this))
     , model(new KFilePlacesModel(this))
     , watcher(new QFileSystemWatcher(this))
-    #endif
+#endif
 {
     /*
      *  The watcher signal returns a local file URL withouth a scheme, and the model is using a local file URL with file:// scheme.
@@ -63,7 +63,7 @@ PlacesList::PlacesList(QObject *parent)
             const auto newCount = dir.count();
             int count = newCount - oldCount;
 
-            this->list[index][FMH::MODEL_KEY::COUNT] = QString::number(std::max( 0 , count ));
+            this->list[index][FMH::MODEL_KEY::COUNT] = QString::number(std::max( 0, count ));
             emit this->updateModel(index, {FMH::MODEL_KEY::COUNT});
         }
     });
@@ -104,8 +104,9 @@ PlacesList::PlacesList(QObject *parent)
 
 void PlacesList::watchPath(const QString &path)
 {
-    if (path.isEmpty() || !FMH::fileExists(path) || !QUrl(path).isLocalFile())
+    if (path.isEmpty() || !FMH::fileExists(path) || !QUrl(path).isLocalFile()) {
         return;
+    }
 
     this->watcher->addPath(QUrl(path).toLocalFile());
 }
@@ -122,31 +123,30 @@ const FMH::MODEL_LIST &PlacesList::items() const
 }
 
 FMH::MODEL_LIST PlacesList::getGroup(const KFilePlacesModel &model, const FMH::PATHTYPE_KEY &type)
-{    
+{
     FMH::MODEL_LIST res;
 
-    if(type == FMH::PATHTYPE_KEY::QUICK_PATH)
-    {
+    if (type == FMH::PATHTYPE_KEY::QUICK_PATH) {
         res << FMH::MODEL {{FMH::MODEL_KEY::PATH, FMH::PATHTYPE_URI[FMH::PATHTYPE_KEY::TAGS_PATH] + "fav"}, {FMH::MODEL_KEY::ICON, "love"}, {FMH::MODEL_KEY::LABEL, "Favorite"}, {FMH::MODEL_KEY::TYPE, "Quick"}};
 
 #if defined Q_OS_LINUX && !defined Q_OS_ANDROID
-    res << FMH::MODEL {{FMH::MODEL_KEY::PATH, "recentdocuments:///"}, {FMH::MODEL_KEY::ICON, "view-media-recent"}, {FMH::MODEL_KEY::LABEL, "Recent"}, {FMH::MODEL_KEY::TYPE, "Quick"}};
+        res << FMH::MODEL {{FMH::MODEL_KEY::PATH, "recentdocuments:///"}, {FMH::MODEL_KEY::ICON, "view-media-recent"}, {FMH::MODEL_KEY::LABEL, "Recent"}, {FMH::MODEL_KEY::TYPE, "Quick"}};
 #endif
 
 #ifdef COMPONENT_TAGGING
-    res << FMH::MODEL {{FMH::MODEL_KEY::PATH, "tags:///"}, {FMH::MODEL_KEY::ICON, "tag"}, {FMH::MODEL_KEY::LABEL, "Tags"}, {FMH::MODEL_KEY::TYPE, "Quick"}};
+        res << FMH::MODEL {{FMH::MODEL_KEY::PATH, "tags:///"}, {FMH::MODEL_KEY::ICON, "tag"}, {FMH::MODEL_KEY::LABEL, "Tags"}, {FMH::MODEL_KEY::TYPE, "Quick"}};
 #endif
 
-    return res;
-}
+        return res;
+    }
 
-if (type == FMH::PATHTYPE_KEY::PLACES_PATH) {
-    res << FMStatic::getDefaultPaths();
-}
+    if (type == FMH::PATHTYPE_KEY::PLACES_PATH) {
+        res << FMStatic::getDefaultPaths();
+    }
 
 #if defined Q_OS_ANDROID || defined Q_OS_WIN32 || defined Q_OS_MACOS || defined Q_OS_IOS
-Q_UNUSED(model)
-switch (type) {
+    Q_UNUSED(model)
+    switch (type) {
     case (FMH::PATHTYPE_KEY::PLACES_PATH):
         res << FMStatic::packItems(UTIL::loadSettings("BOOKMARKS", "PREFERENCES", {}, true).toStringList(), FMH::PATHTYPE_LABEL[FMH::PATHTYPE_KEY::BOOKMARKS_PATH]);
         break;
@@ -155,39 +155,39 @@ switch (type) {
         break;
     default:
         break;
-}
+    }
 #else
-const auto group = model.groupIndexes(static_cast<KFilePlacesModel::GroupType>(type));
-res << std::accumulate(group.constBegin(), group.constEnd(), FMH::MODEL_LIST(), [&model, &type](FMH::MODEL_LIST &list, const QModelIndex &index) -> FMH::MODEL_LIST {
-    const QUrl url = model.url(index);
-    if (type == FMH::PATHTYPE_KEY::PLACES_PATH && FMH::defaultPaths.contains(url.toString()))
+    const auto group = model.groupIndexes(static_cast<KFilePlacesModel::GroupType>(type));
+    res << std::accumulate(group.constBegin(), group.constEnd(), FMH::MODEL_LIST(), [&model, &type](FMH::MODEL_LIST &list, const QModelIndex &index) -> FMH::MODEL_LIST {
+        const QUrl url = model.url(index);
+        if (type == FMH::PATHTYPE_KEY::PLACES_PATH && FMH::defaultPaths.contains(url.toString()))
+            return list;
+
+        if (type == FMH::PATHTYPE_KEY::PLACES_PATH  && url.isLocalFile() && !FMH::fileExists(url))
+            return list;
+
+        list << FMH::MODEL {{FMH::MODEL_KEY::PATH, url.toString()},
+            {FMH::MODEL_KEY::URL, url.toString()},
+            {FMH::MODEL_KEY::ICON, model.icon(index).name()},
+            {FMH::MODEL_KEY::LABEL, model.text(index)},
+            {FMH::MODEL_KEY::NAME, model.text(index)},
+            {FMH::MODEL_KEY::TYPE, type == FMH::PATHTYPE_KEY::PLACES_PATH ? FMH::PATHTYPE_LABEL[FMH::PATHTYPE_KEY::BOOKMARKS_PATH] : FMH::PATHTYPE_LABEL[type]}};
+
         return list;
-
-    if(type == FMH::PATHTYPE_KEY::PLACES_PATH  && url.isLocalFile() && !FMH::fileExists(url))
-        return list;
-
-    list << FMH::MODEL {{FMH::MODEL_KEY::PATH, url.toString()},
-    {FMH::MODEL_KEY::URL, url.toString()},
-    {FMH::MODEL_KEY::ICON, model.icon(index).name()},
-    {FMH::MODEL_KEY::LABEL, model.text(index)},
-    {FMH::MODEL_KEY::NAME, model.text(index)},
-    {FMH::MODEL_KEY::TYPE, type == FMH::PATHTYPE_KEY::PLACES_PATH ? FMH::PATHTYPE_LABEL[FMH::PATHTYPE_KEY::BOOKMARKS_PATH] : FMH::PATHTYPE_LABEL[type]}};
-
-    return list;
-});
+    });
 #endif
 
-return res;
+    return res;
 }
 
 void PlacesList::setList()
 {
-    if(this->groups.isEmpty())
+    if (this->groups.isEmpty()) {
         return;
+    }
 
-    qDebug() << "Setting PlacesList model" << groups;
     emit this->preListChanged();
-    
+
     this->list.clear();
 
     for (const auto &group : qAsConst(this->groups)) {
@@ -254,8 +254,9 @@ QList<int> PlacesList::getGroups() const
 
 void PlacesList::setGroups(const QList<int> &value)
 {
-    if (this->groups == value)
+    if (this->groups == value) {
         return;
+    }
 
     this->groups = value;
     emit this->groupsChanged();
@@ -263,8 +264,9 @@ void PlacesList::setGroups(const QList<int> &value)
 
 QVariantMap PlacesList::get(const int &index) const
 {
-    if (index >= this->list.size() || index < 0)
+    if (index >= this->list.size() || index < 0) {
         return QVariantMap();
+    }
 
     const auto model = this->list.at(index);
     return FMH::toMap(model);
@@ -278,8 +280,9 @@ void PlacesList::clearBadgeCount(const int &index)
 
 void PlacesList::removePlace(const int &index)
 {
-    if (index >= this->list.size() || index < 0)
+    if (index >= this->list.size() || index < 0) {
         return;
+    }
 
 #if defined Q_OS_ANDROID || defined Q_OS_WIN32 || defined Q_OS_MACOS || defined Q_OS_IOS
     auto bookmarks = UTIL::loadSettings("BOOKMARKS", "PREFERENCES", {}, true).toStringList();

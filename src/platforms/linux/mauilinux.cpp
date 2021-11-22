@@ -1,5 +1,6 @@
 /*
  *   Copyright 2018 Camilo Higuita <milo.h@aol.com>
+ *   Copyright 2021 Zhang Hegang <zhanghegang@jingos.com>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -56,23 +57,22 @@ static QVariantMap createActionItem(const QString &label, const QString &actionI
     map["label"] = label;
     map["actionId"] = actionId;
 
-    if (argument.isValid())
+    if (argument.isValid()) {
         map["actionArgument"] = argument;
+    }
 
     return map;
 }
 
 QVariantList MAUIKDE::services(const QUrl &url)
 {
-    qDebug() << "trying to get mimes";
     QVariantList list;
 
     if (url.isValid()) {
         KFileItem fileItem(url);
 
         const auto services = KApplicationTrader::queryByMimeType(fileItem.mimetype());
-        for (const auto &service : services)
-        {
+        for (const auto &service : services) {
             const QString text = service->name().replace('&', "&&");
             QVariantMap item = createActionItem(text, "_kicker_fileItem_openWith", service->entryPath());
             item["icon"] = service->icon();
@@ -90,8 +90,9 @@ QVariantList MAUIKDE::services(const QUrl &url)
 
 bool MAUIKDE::sendToDevice(const QString &device, const QString &id, const QStringList &urls)
 {
-    for (const auto &url : urls)
+    for (const auto &url : urls) {
         KdeConnect::sendToDevice(device, id, url);
+    }
 
     return true;
 }
@@ -109,8 +110,9 @@ void MAUIKDE::openWithApp(const QString &exec, const QStringList &urls)
 
 void MAUIKDE::attachEmail(const QStringList &urls)
 {
-    if (urls.isEmpty())
+    if (urls.isEmpty()) {
         return;
+    }
 
     QFileInfo file(urls[0]);
 
@@ -132,8 +134,9 @@ void MAUIKDE::setColorScheme(const QString &schemeName, const QString &bg, const
 
     const QString colorsFile = colorSchemeDir + schemeName + ".colors";
 
-    if (!FMH::fileExists(colorSchemeDir))
+    if (!FMH::fileExists(colorSchemeDir)) {
         QDir(colorSchemeDir).mkpath(".");
+    }
 
     if (!FMH::fileExists(colorsFile)) {
         QFile color_scheme_file(":/assets/maui-app.colors");
@@ -151,7 +154,6 @@ void MAUIKDE::setColorScheme(const QString &schemeName, const QString &bg, const
     auto schemeModel = manager.indexForScheme(schemeName);
 
     if (!schemeModel.isValid() && FMH::fileExists(colorsFile)) {
-        qDebug() << "COLROS FILE EXISTS BUT IS INVALID";
 
         KConfig scheme_file(colorsFile);
         auto scheme_name = scheme_file.group("General");
@@ -162,9 +164,7 @@ void MAUIKDE::setColorScheme(const QString &schemeName, const QString &bg, const
     schemeModel = manager.indexForScheme(schemeName);
 
     if (schemeModel.isValid()) {
-        qDebug() << "COLRO SCHEME IS VALID";
         if (!bg.isEmpty() || !fg.isEmpty()) {
-            qDebug() << "COLRO SCHEME FILE EXISTS" << colorsFile;
             KConfig file(colorsFile);
             auto group = file.group("WM");
             QColor color;
@@ -218,7 +218,6 @@ FMH::MODEL_LIST MAUIKDE::getApps()
             KServiceGroup::Ptr s(static_cast<KServiceGroup *>(p.data()));
 
             if (!s->noDisplay() && s->childCount() > 0) {
-                qDebug() << "Getting app" << s->icon();
 
                 res << FMH::MODEL {{FMH::MODEL_KEY::ICON, s->icon()}, {FMH::MODEL_KEY::LABEL, s->name()}, {FMH::MODEL_KEY::PATH, FMH::PATHTYPE_URI[FMH::PATHTYPE_KEY::APPS_PATH] + s->entryPath()}};
             }
@@ -230,10 +229,10 @@ FMH::MODEL_LIST MAUIKDE::getApps()
 FMH::MODEL_LIST MAUIKDE::getApps(const QString &groupStr)
 {
     const auto grp = QString(groupStr).replace("/", "") + "/";
-    qDebug() << "APP GROUDP" << groupStr << grp;
 
-    if (grp.isEmpty())
+    if (grp.isEmpty()) {
         return getApps();
+    }
 
     FMH::MODEL_LIST res;
     //    const KServiceGroup::Ptr group(static_cast<KServiceGroup*>(groupStr));
@@ -246,8 +245,9 @@ FMH::MODEL_LIST MAUIKDE::getApps(const QString &groupStr)
         if (p->isType(KST_KService)) {
             const KService::Ptr s(static_cast<KService *>(p.data()));
 
-            if (s->noDisplay())
+            if (s->noDisplay()) {
                 continue;
+            }
 
             res << FMH::MODEL {
 
@@ -259,8 +259,9 @@ FMH::MODEL_LIST MAUIKDE::getApps(const QString &groupStr)
         } else if (p->isType(KST_KServiceGroup)) {
             const KServiceGroup::Ptr s(static_cast<KServiceGroup *>(p.data()));
 
-            if (s->childCount() == 0)
+            if (s->childCount() == 0) {
                 continue;
+            }
 
             res << FMH::MODEL {{FMH::MODEL_KEY::ICON, s->icon()}, {FMH::MODEL_KEY::EXECUTABLE, "true"}, {FMH::MODEL_KEY::LABEL, s->name()}, {FMH::MODEL_KEY::PATH, FMH::PATHTYPE_URI[FMH::PATHTYPE_KEY::APPS_PATH] + s->entryPath()}};
         }
@@ -298,7 +299,7 @@ void MAUIKDE::shareFiles(const QList<QUrl> &urls)
 
 void MAUIKDE::shareText(const QString&)
 {
-    
+
 }
 
 

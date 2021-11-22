@@ -102,7 +102,6 @@ Alerts::Alerts(QObject *parent)
 
 Alerts::~Alerts()
 {
-    qDebug() << "REMOVING ALL DOCUMENTS ALERTS" << this->m_alerts.size();
     for (auto *alert : qAsConst(m_alerts)) {
         delete alert;
         alert = nullptr;
@@ -111,16 +110,18 @@ Alerts::~Alerts()
 
 QVariant Alerts::data(const QModelIndex &index, int role) const
 {
-    if (role == ROLES::ALERT)
+    if (role == ROLES::ALERT) {
         return QVariant::fromValue(this->m_alerts.at(index.row()));
+    }
 
     return QVariant();
 }
 
 int Alerts::rowCount(const QModelIndex &parent) const
 {
-    if (parent.isValid())
+    if (parent.isValid()) {
         return 0;
+    }
 
     return this->m_alerts.count();
 }
@@ -133,8 +134,9 @@ QHash<int, QByteArray> Alerts::roleNames() const
 bool Alerts::contains(DocumentAlert *const alert)
 {
     for (const auto &alert_ : qAsConst(m_alerts)) {
-        if (alert_->getId() == alert->getId())
+        if (alert_->getId() == alert->getId()) {
             return true;
+        }
     }
 
     return false;
@@ -142,8 +144,9 @@ bool Alerts::contains(DocumentAlert *const alert)
 
 void Alerts::append(DocumentAlert *alert)
 {
-    if (this->contains(alert))
+    if (this->contains(alert)) {
         return;
+    }
 
     const auto index = this->rowCount();
     beginInsertRows(QModelIndex(), index, index);
@@ -180,7 +183,9 @@ DocumentAlert *DocumentHandler::externallyModifiedAlert()
 {
     auto alert = new DocumentAlert(i18n("File changed externally"), i18n("You can reload the file or save your changes now"), DocumentAlert::WARNING_LEVEL, Alerts::MODIFIED);
 
-    const auto reloadAction = [&]() { emit this->loadFile(this->fileUrl()); };
+    const auto reloadAction = [&]() {
+        emit this->loadFile(this->fileUrl());
+    };
 
     const auto autoReloadAction = [&]() {
         this->setAutoReload(true);
@@ -203,7 +208,9 @@ DocumentAlert *DocumentHandler::missingAlert()
 {
     auto alert = new DocumentAlert(i18n("Your file was removed"), i18n("This file does not longer exists in your local storage, however you can save it again"), DocumentAlert::DANGER_LEVEL, Alerts::MISSING);
 
-    const auto saveAction = [&]() { this->saveAs(this->fileUrl()); };
+    const auto saveAction = [&]() {
+        this->saveAs(this->fileUrl());
+    };
 
     alert->setActions({{i18n("Save"), saveAction}});
     return alert;
@@ -229,13 +236,12 @@ DocumentHandler::DocumentHandler(QObject *parent)
         connect(this, &DocumentHandler::loadFile, m_loader, &FileLoader::loadFile);
         connect(m_loader, &FileLoader::fileReady, [&](QString array, QUrl url) {
             this->setText(array);
-            
-            if (this->textDocument())
-            {
+
+            if (this->textDocument()) {
                 this->textDocument()->setModified(false);
-                
+
                 this->isRich = Qt::mightBeRichText(this->text());
-                emit this->isRichChanged();                
+                emit this->isRichChanged();
             }
 
             emit this->loaded(url);
@@ -245,21 +251,21 @@ DocumentHandler::DocumentHandler(QObject *parent)
         m_worker.start();
     }
     // end file loader thread implementation
-    
-    connect(&m_autoSaveTimer, &QTimer::timeout, [this]()
-    {
-        if(m_autoSave && getModified() && !m_fileUrl.isEmpty())
-        {
-            qDebug() << "Autosaving file" << m_fileUrl;
-            saveAs(m_fileUrl);   
-            m_autoSaveTimer.start(AUTOSAVE_TIMEOUT);
-        }            
-    });
-    
-    if(m_autoSave)
-        m_autoSaveTimer.start(AUTOSAVE_TIMEOUT);
 
-    connect(this, &DocumentHandler::cursorPositionChanged, [&]() { emit this->currentLineIndexChanged(); });
+    connect(&m_autoSaveTimer, &QTimer::timeout, [this]() {
+        if (m_autoSave && getModified() && !m_fileUrl.isEmpty()) {
+            saveAs(m_fileUrl);
+            m_autoSaveTimer.start(AUTOSAVE_TIMEOUT);
+        }
+    });
+
+    if (m_autoSave) {
+        m_autoSaveTimer.start(AUTOSAVE_TIMEOUT);
+    }
+
+    connect(this, &DocumentHandler::cursorPositionChanged, [&]() {
+        emit this->currentLineIndexChanged();
+    });
 
     connect(this->m_watcher, &QFileSystemWatcher::fileChanged, [&](QString url) {
         if (this->fileUrl() == QUrl::fromLocalFile(url)) {
@@ -315,8 +321,9 @@ bool DocumentHandler::getAutoReload() const
 
 void DocumentHandler::setAutoReload(const bool &value)
 {
-    if (value == this->m_autoReload)
+    if (value == this->m_autoReload) {
         return;
+    }
 
     this->m_autoReload = value;
     emit this->autoReloadChanged();
@@ -329,23 +336,27 @@ bool DocumentHandler::autoSave() const
 
 void DocumentHandler::setAutoSave(const bool &value)
 {
-    if(m_autoSave == value)
+    if (m_autoSave == value) {
         return;
-    
+    }
+
     m_autoSave = value;
     emit autoSaveChanged();
-    
-    if(m_autoSave)
-    {
-        if(!m_autoSaveTimer.isActive())
-            m_autoSaveTimer.start(AUTOSAVE_TIMEOUT);       
-    }else m_autoSaveTimer.stop();
+
+    if (m_autoSave) {
+        if (!m_autoSaveTimer.isActive()) {
+            m_autoSaveTimer.start(AUTOSAVE_TIMEOUT);
+        }
+    } else {
+        m_autoSaveTimer.stop();
+    }
 }
 
 bool DocumentHandler::getModified() const
 {
-    if (auto doc = this->textDocument())
+    if (auto doc = this->textDocument()) {
         return doc->isModified();
+    }
 
     return false;
 }
@@ -357,8 +368,9 @@ bool DocumentHandler::getExternallyModified() const
 
 void DocumentHandler::setExternallyModified(const bool &value)
 {
-    if (value == this->m_externallyModified)
+    if (value == this->m_externallyModified) {
         return;
+    }
 
     this->m_externallyModified = value;
     emit this->externallyModifiedChanged();
@@ -366,10 +378,10 @@ void DocumentHandler::setExternallyModified(const bool &value)
 
 void DocumentHandler::setStyle()
 {
-    if (!DocumentHandler::m_repository)
+    if (!DocumentHandler::m_repository) {
         DocumentHandler::m_repository = new KSyntaxHighlighting::Repository();
+    }
 
-    qDebug() << "Setting ths tyle" << m_formatName;
     if (!m_enableSyntaxHighlighting || m_formatName == "None") {
         this->m_highlighter->setDocument(nullptr);
         //         this->m_highlighter->setTheme(KSyntaxHighlighting::Theme());
@@ -378,19 +390,14 @@ void DocumentHandler::setStyle()
         return;
     }
 
-    qDebug() << "Setting the style for syntax highligthing";
-
     const auto def = m_repository->definitionForName(this->m_formatName);
     if (!def.isValid()) {
-        qDebug() << "Highliging definition is not valid" << def.name() << def.filePath() << def.author() << m_formatName;
         return;
     }
 
     if (!m_highlighter->document()) {
         this->m_highlighter->setDocument(this->textDocument());
     }
-
-    qDebug() << "Highliging definition info" << def.name() << def.filePath() << def.author() << m_formatName;
 
     this->m_highlighter->setDefinition(def);
 
@@ -400,22 +407,21 @@ void DocumentHandler::setStyle()
         this->m_highlighter->setTheme(style);
 
     } else {
-        qDebug() << "Applying theme << " << m_theme << DocumentHandler::m_repository->theme(m_theme).isValid();
         const auto style = DocumentHandler::m_repository->theme(m_theme);
         this->m_highlighter->setTheme(style);
         this->m_highlighter->rehighlight();
     }
-    
+
     refreshAllBlocks();
 }
 
 void DocumentHandler::refreshAllBlocks()
-{   
-    
-    if(textDocument())
-    {        
-        for (QTextBlock it = textDocument()->begin(); it != textDocument()->end(); it = it.next())
+{
+
+    if (textDocument()) {
+        for (QTextBlock it = textDocument()->begin(); it != textDocument()->end(); it = it.next()) {
             textDocument()->documentLayout()->updateBlock(it);
+        }
     }
 }
 
@@ -426,12 +432,11 @@ QString DocumentHandler::formatName() const
 
 void DocumentHandler::setFormatName(const QString &formatName)
 {
-    if (this->m_formatName != formatName)
-    {
+    if (this->m_formatName != formatName) {
         this->m_formatName = formatName;
         emit this->formatNameChanged();
-    }    
-  
+    }
+
     this->setStyle();
 }
 
@@ -442,14 +447,16 @@ QColor DocumentHandler::getBackgroundColor() const
 
 void DocumentHandler::setBackgroundColor(const QColor &color)
 {
-    if (this->m_backgroundColor == color)
+    if (this->m_backgroundColor == color) {
         return;
+    }
 
     this->m_backgroundColor = color;
     emit this->backgroundColorChanged();
 
-    if (!DocumentHandler::m_repository)
+    if (!DocumentHandler::m_repository) {
         DocumentHandler::m_repository = new KSyntaxHighlighting::Repository();
+    }
 }
 
 Alerts *DocumentHandler::getAlerts() const
@@ -470,12 +477,12 @@ void DocumentHandler::setDocument(QQuickTextDocument *document)
     if (this->textDocument()) {
         this->textDocument()->setModified(false);
         connect(this->textDocument(), &QTextDocument::modificationChanged, this, &DocumentHandler::modifiedChanged);
-        
-        this->load(m_fileUrl);        
-        
-        QTextOption textOptions = this->textDocument()->defaultTextOption();     
+
+        this->load(m_fileUrl);
+
+        QTextOption textOptions = this->textDocument()->defaultTextOption();
         textOptions.setTabStopDistance(m_tabSpace);
-        textDocument()->setDefaultTextOption(textOptions);        
+        textDocument()->setDefaultTextOption(textOptions);
     }
 }
 
@@ -486,8 +493,9 @@ int DocumentHandler::cursorPosition() const
 
 void DocumentHandler::setCursorPosition(int position)
 {
-    if (position == m_cursorPosition)
+    if (position == m_cursorPosition) {
         return;
+    }
 
     m_cursorPosition = position;
     reset();
@@ -501,8 +509,9 @@ int DocumentHandler::selectionStart() const
 
 void DocumentHandler::setSelectionStart(int position)
 {
-    if (position == m_selectionStart)
+    if (position == m_selectionStart) {
         return;
+    }
 
     m_selectionStart = position;
     emit selectionStartChanged();
@@ -515,8 +524,9 @@ int DocumentHandler::selectionEnd() const
 
 void DocumentHandler::setSelectionEnd(int position)
 {
-    if (position == m_selectionEnd)
+    if (position == m_selectionEnd) {
         return;
+    }
 
     m_selectionEnd = position;
     emit selectionEndChanged();
@@ -525,8 +535,9 @@ void DocumentHandler::setSelectionEnd(int position)
 QString DocumentHandler::fontFamily() const
 {
     QTextCursor cursor = textCursor();
-    if (cursor.isNull())
+    if (cursor.isNull()) {
         return QString();
+    }
     QTextCharFormat format = cursor.charFormat();
     return format.font().family();
 }
@@ -542,8 +553,9 @@ void DocumentHandler::setFontFamily(const QString &family)
 QColor DocumentHandler::textColor() const
 {
     QTextCursor cursor = textCursor();
-    if (cursor.isNull())
+    if (cursor.isNull()) {
         return QColor(Qt::black);
+    }
     QTextCharFormat format = cursor.charFormat();
     return format.foreground().color();
 }
@@ -559,8 +571,9 @@ void DocumentHandler::setTextColor(const QColor &color)
 Qt::Alignment DocumentHandler::alignment() const
 {
     QTextCursor cursor = textCursor();
-    if (cursor.isNull())
+    if (cursor.isNull()) {
         return Qt::AlignLeft;
+    }
     return textCursor().blockFormat().alignment();
 }
 
@@ -576,8 +589,9 @@ void DocumentHandler::setAlignment(Qt::Alignment alignment)
 bool DocumentHandler::bold() const
 {
     QTextCursor cursor = textCursor();
-    if (cursor.isNull())
+    if (cursor.isNull()) {
         return false;
+    }
     return textCursor().charFormat().fontWeight() == QFont::Bold;
 }
 
@@ -592,8 +606,9 @@ void DocumentHandler::setBold(bool bold)
 bool DocumentHandler::uppercase() const
 {
     QTextCursor cursor = textCursor();
-    if (cursor.isNull())
+    if (cursor.isNull()) {
         return false;
+    }
     return textCursor().charFormat().fontCapitalization() == QFont::AllUppercase;
 }
 
@@ -608,8 +623,9 @@ void DocumentHandler::setUppercase(bool uppercase)
 bool DocumentHandler::italic() const
 {
     QTextCursor cursor = textCursor();
-    if (cursor.isNull())
+    if (cursor.isNull()) {
         return false;
+    }
     return textCursor().charFormat().fontItalic();
 }
 
@@ -624,8 +640,9 @@ void DocumentHandler::setItalic(bool italic)
 bool DocumentHandler::underline() const
 {
     QTextCursor cursor = textCursor();
-    if (cursor.isNull())
+    if (cursor.isNull()) {
         return false;
+    }
     return textCursor().charFormat().fontUnderline();
 }
 
@@ -645,26 +662,31 @@ bool DocumentHandler::getIsRich() const
 int DocumentHandler::fontSize() const
 {
     QTextCursor cursor = textCursor();
-    if (cursor.isNull())
+    if (cursor.isNull()) {
         return 0;
+    }
     QTextCharFormat format = cursor.charFormat();
     return format.font().pointSize();
 }
 
 void DocumentHandler::setFontSize(int size)
 {
-    if (size <= 0)
+    if (size <= 0) {
         return;
+    }
 
     QTextCursor cursor = textCursor();
-    if (cursor.isNull())
+    if (cursor.isNull()) {
         return;
+    }
 
-    if (!cursor.hasSelection())
+    if (!cursor.hasSelection()) {
         cursor.select(QTextCursor::WordUnderCursor);
+    }
 
-    if (cursor.charFormat().property(QTextFormat::FontPointSize).toInt() == size)
+    if (cursor.charFormat().property(QTextFormat::FontPointSize).toInt() == size) {
         return;
+    }
 
     QTextCharFormat format;
     format.setFontPointSize(size);
@@ -674,18 +696,18 @@ void DocumentHandler::setFontSize(int size)
 
 void DocumentHandler::setTabSpace(qreal value)
 {
-    if(m_tabSpace == value)
+    if (m_tabSpace == value) {
         return;
-    
+    }
+
     m_tabSpace = value;
-    
-    if(textDocument())
-    {
-        QTextOption textOptions = this->textDocument()->defaultTextOption();     
+
+    if (textDocument()) {
+        QTextOption textOptions = this->textDocument()->defaultTextOption();
         textOptions.setTabStopDistance(m_tabSpace);
         textDocument()->setDefaultTextOption(textOptions);
     }
-    
+
     emit tabSpaceChanged();
     refreshAllBlocks();
 }
@@ -699,8 +721,9 @@ QString DocumentHandler::fileName() const
 {
     const QString filePath = QQmlFile::urlToLocalFileOrQrc(m_fileUrl);
     const QString fileName = QFileInfo(filePath).fileName();
-    if (fileName.isEmpty())
+    if (fileName.isEmpty()) {
         return QStringLiteral("untitled.txt");
+    }
     return fileName;
 }
 
@@ -716,13 +739,14 @@ QUrl DocumentHandler::fileUrl() const
 
 void DocumentHandler::setFileUrl(const QUrl &url)
 {
- if (url == m_fileUrl)
+    if (url == m_fileUrl) {
         return;
+    }
 
     m_fileUrl = url;
- 
+
     load(m_fileUrl);
- 
+
     emit fileUrlChanged();
     emit fileInfoChanged();
 }
@@ -734,12 +758,13 @@ QVariantMap DocumentHandler::fileInfo() const
 
 void DocumentHandler::load(const QUrl &url)
 {
-    qDebug() << "TRYING TO LOAD FILE << " << url << url.isEmpty();
-    if(!textDocument())
+    if (!textDocument()) {
         return;
+    }
 
-    if (m_fileUrl.isLocalFile() && !FMH::fileExists(m_fileUrl))
+    if (m_fileUrl.isLocalFile() && !FMH::fileExists(m_fileUrl)) {
         return;
+    }
 
     QQmlEngine *engine = qmlEngine(this);
     if (!engine) {
@@ -759,12 +784,14 @@ void DocumentHandler::load(const QUrl &url)
 
 void DocumentHandler::saveAs(const QUrl &url)
 {
-    if (url.isEmpty() || !url.isValid())
+    if (url.isEmpty() || !url.isValid()) {
         return;
+    }
 
     QTextDocument *doc = this->textDocument();
-    if (!doc)
+    if (!doc) {
         return;
+    }
 
     this->m_internallyModified = true;
 
@@ -792,8 +819,9 @@ void DocumentHandler::saveAs(const QUrl &url)
 
     doc->setModified(false);
 
-    if (url == m_fileUrl)
+    if (url == m_fileUrl) {
         return;
+    }
 
     m_fileUrl = url;
     emit fileUrlChanged();
@@ -801,8 +829,9 @@ void DocumentHandler::saveAs(const QUrl &url)
 
 const QString DocumentHandler::getLanguageNameFromFileName(const QUrl &fileName)
 {
-    if (!DocumentHandler::m_repository)
+    if (!DocumentHandler::m_repository) {
         DocumentHandler::m_repository = new KSyntaxHighlighting::Repository();
+    }
     const auto res = DocumentHandler::m_repository->definitionForFileName(fileName.toString());
 
     return res.isValid() ? res.name() : QString();
@@ -810,8 +839,9 @@ const QString DocumentHandler::getLanguageNameFromFileName(const QUrl &fileName)
 
 const QStringList DocumentHandler::getLanguageNameList()
 {
-    if (!DocumentHandler::m_repository)
+    if (!DocumentHandler::m_repository) {
         m_repository = new KSyntaxHighlighting::Repository();
+    }
 
     const auto definitions = DocumentHandler::m_repository->definitions();
     return std::accumulate(definitions.constBegin(), definitions.constEnd(), QStringList(), [](QStringList &languages, const auto &definition) -> QStringList {
@@ -822,8 +852,9 @@ const QStringList DocumentHandler::getLanguageNameList()
 
 const QStringList DocumentHandler::getThemes()
 {
-    if (!DocumentHandler::m_repository)
+    if (!DocumentHandler::m_repository) {
         DocumentHandler::m_repository = new KSyntaxHighlighting::Repository();
+    }
 
     const auto themes = DocumentHandler::m_repository->themes();
     return std::accumulate(themes.constBegin(), themes.constEnd(), QStringList(), [](QStringList &res, const KSyntaxHighlighting::Theme &theme) -> QStringList {
@@ -846,8 +877,9 @@ void DocumentHandler::reset()
 QTextCursor DocumentHandler::textCursor() const
 {
     QTextDocument *doc = textDocument();
-    if (!doc)
+    if (!doc) {
         return QTextCursor();
+    }
 
     QTextCursor cursor = QTextCursor(doc);
     if (m_selectionStart != m_selectionEnd) {
@@ -861,8 +893,9 @@ QTextCursor DocumentHandler::textCursor() const
 
 QTextDocument *DocumentHandler::textDocument() const
 {
-    if (!m_document)
+    if (!m_document) {
         return nullptr;
+    }
 
     return m_document->textDocument();
 }
@@ -870,14 +903,14 @@ QTextDocument *DocumentHandler::textDocument() const
 void DocumentHandler::mergeFormatOnWordOrSelection(const QTextCharFormat &format)
 {
     QTextCursor cursor = textCursor();
-    if (!cursor.hasSelection())
+    if (!cursor.hasSelection()) {
         cursor.select(QTextCursor::WordUnderCursor);
+    }
     cursor.mergeCharFormat(format);
 }
 
 void DocumentHandler::find(const QString &query)
 {
-    qDebug() << "Asked to find" << query;
     QTextDocument *doc = textDocument();
 
     if (!doc) {
@@ -948,12 +981,12 @@ bool DocumentHandler::enableSyntaxHighlighting() const
 
 void DocumentHandler::setTheme(const QString &theme)
 {
-    if (m_theme == theme)
+    if (m_theme == theme) {
         return;
+    }
 
     m_theme = theme;
     setStyle();
-    qDebug() << "changinf the theme<< " << theme << m_theme;
     emit themeChanged();
 }
 

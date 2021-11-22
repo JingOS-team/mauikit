@@ -20,7 +20,6 @@ Maui.Dialog
         {
             if(control.scrollable[i] instanceof Maui.SettingsSection)
             {
-                console.log("Setting dialog section", i)
                 control.scrollable[i].index = i
             }
         }

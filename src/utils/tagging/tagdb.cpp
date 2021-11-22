@@ -1,5 +1,6 @@
 /*
  *   Copyright 2018 Camilo Higuita <milo.h@aol.com>
+ *   Copyright 2021 Zhang He Gang <zhanghegang@jingos.com>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,16 +26,17 @@ TAGDB::TAGDB()
     : QObject(nullptr)
 {
     QDir collectionDBPath_dir(TAG::TaggingPath);
-    if (!collectionDBPath_dir.exists())
+    if (!collectionDBPath_dir.exists()) {
         collectionDBPath_dir.mkpath(".");
+    }
 
     this->name = QUuid::createUuid().toString();
     if (!FMH::fileExists(QUrl::fromLocalFile(TAG::TaggingPath + TAG::DBName))) {
         this->openDB(this->name);
-        qDebug() << "Collection doesn't exists, trying to create it" << TAG::TaggingPath + TAG::DBName;
         this->prepareCollectionDB();
-    } else
+    } else {
         this->openDB(this->name);
+    }
 }
 
 TAGDB::~TAGDB()
@@ -51,8 +53,9 @@ void TAGDB::openDB(const QString &name)
     }
 
     if (!this->m_db.isOpen()) {
-        if (!this->m_db.open())
-            qDebug() << "ERROR OPENING DB" << this->m_db.lastError().text() << m_db.connectionName();
+        if (!this->m_db.open()) {
+            qWarning() << "ERROR OPENING DB" << this->m_db.lastError().text() << m_db.connectionName();
+        }
     }
     auto query = this->getQuery("PRAGMA synchronous=OFF");
     query.exec();
@@ -93,20 +96,24 @@ void TAGDB::prepareCollectionDB() const
             cleanedLine = readLine.trimmed();
             strings = cleanedLine.split("--");
             cleanedLine = strings.at(0);
-            if (!cleanedLine.startsWith("--") && !cleanedLine.startsWith("DROP") && !cleanedLine.isEmpty())
+            if (!cleanedLine.startsWith("--") && !cleanedLine.startsWith("DROP") && !cleanedLine.isEmpty()) {
                 line += cleanedLine;
-            if (cleanedLine.endsWith(";"))
+            }
+            if (cleanedLine.endsWith(";")) {
                 break;
-            if (cleanedLine.startsWith("COMMIT"))
+            }
+            if (cleanedLine.startsWith("COMMIT")) {
                 hasText = true;
+            }
         }
         if (!line.isEmpty()) {
             if (!query.exec(line)) {
                 qDebug() << "exec failed" << query.lastQuery() << query.lastError();
             }
 
-        } else
+        } else {
             qDebug() << "exec wrong" << query.lastError();
+        }
     }
     file.close();
 }
@@ -119,14 +126,15 @@ bool TAGDB::checkExistance(const QString &tableName, const QString &searchId, co
 
 bool TAGDB::checkExistance(const QString &queryStr)
 {
-    qDebug() << "CHECKIGN QUERY TAG" << queryStr;
     auto query = this->getQuery(queryStr);
 
     if (query.exec()) {
-        if (query.next())
+        if (query.next()) {
             return true;
-    } else
+        }
+    } else {
         qDebug() << query.lastError().text();
+    }
 
     return false;
 }
@@ -140,11 +148,9 @@ QSqlQuery TAGDB::getQuery(const QString &queryTxt)
 bool TAGDB::insert(const QString &tableName, const QVariantMap &insertData)
 {
     if (tableName.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on insert! The table name is empty!");
         return false;
 
     } else if (insertData.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on insert! The insertData is empty!");
         return false;
     }
 
@@ -152,41 +158,78 @@ bool TAGDB::insert(const QString &tableName, const QVariantMap &insertData)
     QStringList fields = insertData.keys();
     QVariantList values = insertData.values();
     int totalFields = fields.size();
-    for (int i = 0; i < totalFields; ++i)
+    for (int i = 0; i < totalFields; ++i) {
         strValues.append("?");
+    }
 
     QString sqlQueryString = "INSERT INTO " + tableName + " (" + QString(fields.join(",")) + ") VALUES(" + QString(strValues.join(",")) + ")";
     QSqlQuery query(this->m_db);
     query.prepare(sqlQueryString);
 
     int k = 0;
-    foreach (const QVariant &value, values)
+    foreach (const QVariant &value, values) {
         query.bindValue(k++, value);
+    }
 
+    return query.exec();
+}
+
+bool TAGDB::insertDatas(const QString &tableName, const QList<QHash<QString, QString>> &insertDatas)
+{
+    if (tableName.isEmpty()) {
+        return false;
+
+    } else if (insertDatas.isEmpty()) {
+        return false;
+    }
+
+    QString sqlQueryString = "INSERT INTO " + tableName;
+    QStringList fields;
+    for (int i = 0; i < insertDatas.size() ; i++) {
+        QHash<QString, QString> insertData = insertDatas.at(i);
+        if (i == 0) {
+            fields = insertData.keys();
+            sqlQueryString.append(" (" + QString(fields.join(",")) + ") VALUES");
+        }
+        QList<QString> values = insertData.values();
+        QString sqlValues;
+        for (int j = 0; j < values.size() ; j++) {
+            sqlValues.append("\""+values.at(j)+"\"");
+            if (j < values.size() - 1) {
+                sqlValues.append(",");
+            }
+        }
+        sqlQueryString.append(" (" +sqlValues + ") ");
+        if (i < insertDatas.size() - 1 && insertDatas.size() > 1) {
+            sqlQueryString.append(",");
+        }
+
+    }
+    QSqlQuery query(this->m_db);
+    query.prepare(sqlQueryString);
     return query.exec();
 }
 
 bool TAGDB::update(const QString &tableName, const FMH::MODEL &updateData, const QVariantMap &where)
 {
     if (tableName.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on insert! The table name is empty!");
         return false;
     } else if (updateData.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on insert! The insertData is empty!");
         return false;
     }
 
     QStringList set;
-    for (auto key : updateData.keys())
+    for (auto key : updateData.keys()) {
         set.append(FMH::MODEL_NAME[key] + " = '" + updateData[key] + "'");
+    }
 
     QStringList condition;
-    for (auto key : where.keys())
+    for (auto key : where.keys()) {
         condition.append(key + " = '" + where[key].toString() + "'");
+    }
 
     QString sqlQueryString = "UPDATE " + tableName + " SET " + QString(set.join(",")) + " WHERE " + QString(condition.join(","));
     auto query = this->getQuery(sqlQueryString);
-    qDebug() << sqlQueryString;
     return query.exec();
 }
 
@@ -200,11 +243,9 @@ bool TAGDB::update(const QString &table, const QString &column, const QVariant &
 bool TAGDB::remove(const QString &tableName, const FMH::MODEL &removeData)
 {
     if (tableName.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on removing! The table name is empty!");
         return false;
 
     } else if (removeData.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on insert! The removeData is empty!");
         return false;
     }
 
@@ -214,12 +255,49 @@ bool TAGDB::remove(const QString &tableName, const FMH::MODEL &removeData)
         strValues.append(QString("%1 = \"%2\"").arg(FMH::MODEL_NAME[key], removeData[key]));
         i++;
 
-        if (removeData.size() > 1 && i < removeData.size())
+        if (removeData.size() > 1 && i < removeData.size()) {
             strValues.append(" AND ");
+        }
     }
 
     QString sqlQueryString = "DELETE FROM " + tableName + " WHERE " + strValues;
-    qDebug() << sqlQueryString;
+    return this->getQuery(sqlQueryString).exec();
+}
+
+bool TAGDB::remove(const QString &tableName, const QList<FMH::MODEL> &removeDatas)
+{
+    if (tableName.isEmpty()) {
+        return false;
+
+    } else if (removeDatas.isEmpty()) {
+        return false;
+    }
+
+    QString strValues;
+    for (int j = 0 ; j < removeDatas.size() ; j++) {
+        FMH::MODEL removeData = removeDatas.at(j);
+        auto i = 0;
+        strValues.append("(");
+        for (auto key : removeData.keys()) {
+            if (key == FMH::MODEL_KEY::TAG) {
+                strValues.append(QString("%1 LIKE \"tag%\"").arg(FMH::MODEL_NAME[key]));
+            } else {
+                strValues.append(QString("%1 = \"%2\"").arg(FMH::MODEL_NAME[key], removeData[key]));
+            }
+            i++;
+
+            if (removeData.size() > 1 && i < removeData.size()) {
+                strValues.append(" AND ");
+            }
+        }
+        strValues.append(")");
+        if (j < removeDatas.size() - 1) {
+            strValues.append(" OR ");
+        }
+    }
+
+
+    QString sqlQueryString = "DELETE FROM " + tableName + " WHERE " + strValues;
 
     return this->getQuery(sqlQueryString).exec();
 }

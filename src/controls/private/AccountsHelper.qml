@@ -59,7 +59,6 @@ Maui.Dialog
         onRejected:
         {
             var account = Maui.App.accounts.get(_listView.currentIndex)
-            console.log(account.label)
             control.removeAccount(account.server, account.user)
             close()
         }

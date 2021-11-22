@@ -44,11 +44,13 @@
 static const QUrl CONF_FILE = FMH::ConfigPath + "/kdeglobals";
 
 #ifdef KSHAREDCONFIG_H
-static const auto confCheck = [](QString key, QVariant defaultValue) -> QVariant {
+static const auto confCheck = [](QString key, QVariant defaultValue) -> QVariant
+{
     auto kconf = KSharedConfig::openConfig("kdeglobals");
     const auto group = kconf->group("KDE");
-    if (group.hasKey(key))
+    if (group.hasKey(key)) {
         return group.readEntry(key, defaultValue);
+    }
 
     return defaultValue;
 };
@@ -98,8 +100,9 @@ static inline struct {
 QVariantMap Handy::userInfo()
 {
     QString name = qgetenv("USER");
-    if (name.isEmpty())
+    if (name.isEmpty()) {
         name = qgetenv("USERNAME");
+    }
 
     return QVariantMap({{FMH::MODEL_NAME[FMH::MODEL_KEY::NAME], name}});
 }
@@ -113,8 +116,9 @@ QString Handy::getClipboardText()
 #endif
 
     auto mime = clipbopard->mimeData();
-    if (mime->hasText())
+    if (mime->hasText()) {
         return clipbopard->text();
+    }
 
     return QString();
 }
@@ -123,22 +127,26 @@ QVariantMap Handy::getClipboard()
 {
     QVariantMap res;
 #ifdef Q_OS_ANDROID
-    if (_clipboard.hasUrls())
+    if (_clipboard.hasUrls()) {
         res.insert("urls", QUrl::toStringList(_clipboard.urls));
+    }
 
-    if (_clipboard.hasText())
+    if (_clipboard.hasText()) {
         res.insert("text", _clipboard.text);
+    }
 
     res.insert("cut", _clipboard.cut);
 #else
     auto clipboard = QApplication::clipboard();
 
     auto mime = clipboard->mimeData();
-    if (mime->hasUrls())
+    if (mime->hasUrls()) {
         res.insert("urls", QUrl::toStringList(mime->urls()));
+    }
 
-    if (mime->hasText())
+    if (mime->hasText()) {
         res.insert("text", mime->text());
+    }
 
     const QByteArray a = mime->data(QStringLiteral("application/x-kde-cutselection"));
 
@@ -150,11 +158,13 @@ QVariantMap Handy::getClipboard()
 bool Handy::copyToClipboard(const QVariantMap &value, const bool &cut)
 {
 #ifdef Q_OS_ANDROID
-    if (value.contains("urls"))
+    if (value.contains("urls")) {
         _clipboard.urls = QUrl::fromStringList(value["urls"].toStringList());
+    }
 
-    if (value.contains("text"))
+    if (value.contains("text")) {
         _clipboard.text = value["text"].toString();
+    }
 
     _clipboard.cut = cut;
 
@@ -163,11 +173,13 @@ bool Handy::copyToClipboard(const QVariantMap &value, const bool &cut)
     auto clipboard = QApplication::clipboard();
     QMimeData *mimeData = new QMimeData();
 
-    if (value.contains("urls"))
+    if (value.contains("urls")) {
         mimeData->setUrls(QUrl::fromStringList(value["urls"].toStringList()));
+    }
 
-    if (value.contains("text"))
+    if (value.contains("text")) {
         mimeData->setText(value["text"].toString());
+    }
 
     mimeData->setData(QStringLiteral("application/x-kde-cutselection"), cut ? "1" : "0");
     clipboard->setMimeData(mimeData);
@@ -212,9 +224,9 @@ bool Handy::isTouch()
 {
     const auto devices = QTouchDevice::devices();
     for (const auto &device : devices) {
-        if (device->type() == QTouchDevice::TouchScreen)
+        if (device->type() == QTouchDevice::TouchScreen) {
             return true;
-        qDebug() << "DEVICE CAPABILITIES" << device->capabilities() << device->name();
+        }
     }
 
     return false;
@@ -222,7 +234,7 @@ bool Handy::isTouch()
 
 bool Handy::hasKeyboard()
 {
-   return Platform::instance()->hasKeyboard();
+    return Platform::instance()->hasKeyboard();
 }
 
 bool Handy::hasMouse()

@@ -90,7 +90,7 @@ int SchemesModel::rowCount(const QModelIndex &parent) const
 QHash<int, QByteArray> SchemesModel::roleNames() const
 {
     QHash<int, QByteArray> roles(
-        {{Qt::DisplayRole, QByteArrayLiteral("display")}, {Qt::UserRole + 4, QByteArrayLiteral("file")}, {Qt::UserRole + 5, QByteArrayLiteral("backgroundColor")}, {Qt::UserRole + 6, QByteArrayLiteral("textColor")}});
+    {{Qt::DisplayRole, QByteArrayLiteral("display")}, {Qt::UserRole + 4, QByteArrayLiteral("file")}, {Qt::UserRole + 5, QByteArrayLiteral("backgroundColor")}, {Qt::UserRole + 6, QByteArrayLiteral("textColor")}});
     return roles;
 }
 
@@ -118,8 +118,8 @@ void SchemesModel::initSchemes()
     for (auto path : standardPaths) {
         QDir directory(path);
         QStringList tempSchemes = directory.entryList(QStringList() << "*.colors"
-                                                                    << "*.COLORS",
-                                                      QDir::Files);
+                                  << "*.COLORS",
+                                  QDir::Files);
 
         foreach (QString filename, tempSchemes) {
             if (!registeredSchemes.contains(filename)) {

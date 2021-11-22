@@ -53,14 +53,14 @@ public:
 
 private:
     QList<KDecoration2::BorderSize> m_borders = QList<KDecoration2::BorderSize>({KDecoration2::BorderSize::None,
-                                                                                 KDecoration2::BorderSize::NoSides,
-                                                                                 KDecoration2::BorderSize::Tiny,
-                                                                                 KDecoration2::BorderSize::Normal,
-                                                                                 KDecoration2::BorderSize::Large,
-                                                                                 KDecoration2::BorderSize::VeryLarge,
-                                                                                 KDecoration2::BorderSize::Huge,
-                                                                                 KDecoration2::BorderSize::VeryHuge,
-                                                                                 KDecoration2::BorderSize::Oversized});
+            KDecoration2::BorderSize::NoSides,
+            KDecoration2::BorderSize::Tiny,
+            KDecoration2::BorderSize::Normal,
+            KDecoration2::BorderSize::Large,
+            KDecoration2::BorderSize::VeryLarge,
+            KDecoration2::BorderSize::Huge,
+            KDecoration2::BorderSize::VeryHuge,
+            KDecoration2::BorderSize::Oversized});
 };
 
 class PreviewSettings : public QObject, public KDecoration2::DecorationSettingsPrivate

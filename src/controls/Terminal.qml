@@ -178,12 +178,9 @@ Maui.Page
 
         enableBold: true
         fullCursorHeight: true
-// 		onKeyPressedSignal: console.log(e.key)
 
         font.family: "Monospace"
         font.pixelSize: 12
-
-        onTerminalUsesMouseChanged: console.log(terminalUsesMouse);
 
         Keys.enabled: true
         Keys.onPressed: control.keyPressed(event)
@@ -194,14 +191,6 @@ Maui.Page
             initialWorkingDirectory: "$HOME"
             onFinished: Qt.quit()
 
-            // 			onMatchFound:
-            // 			{
-            // 				console.log("found at: %1 %2 %3 %4".arg(startColumn).arg(startLine).arg(endColumn).arg(endLine));
-            // 			}
-            // 			onNoMatchFound:
-            // 			{
-            // 				console.log("not found");
-            // 			}
             function find(query)
             {
                 ksession.search(query)

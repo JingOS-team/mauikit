@@ -205,6 +205,7 @@ public slots:
     /* ACTIONS */
     bool copy(const QList<QUrl> &urls, const QUrl &where);
     bool cut(const QList<QUrl> &urls, const QUrl &where);
+    bool updateTag(const QList<QUrl> &urls, const QUrl &where);
 
     friend class FMStatic;
 };

@@ -217,7 +217,6 @@ TextField
 
         onDropped:
         {
-            console.log(drop.text, drop.html)
             if (drop.hasText)
             {
                   control.text += drop.text

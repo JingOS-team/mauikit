@@ -1,6 +1,7 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
  * Copyright (C) 2019  camilo <chiguitar@unal.edu.co>
+ * Copyright (C) 2021  Zhang He Gang <zhanghegang@jingos.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +32,6 @@ void MauiModel::setFilterString(const QString &string)
 {
     this->setFilterCaseSensitivity(Qt::CaseInsensitive);
     this->setFilterFixedString(string);
-    //     this->setFilterRegExp(QRegExp(string, Qt::CaseInsensitive));
 }
 
 void MauiModel::setSortOrder(const int &sortOrder)
@@ -42,12 +42,14 @@ void MauiModel::setSortOrder(const int &sortOrder)
 QVariantMap MauiModel::get(const int &index) const
 {
     QVariantMap res;
-    if (index >= this->rowCount() || index < 0)
+    if (index >= this->rowCount() || index < 0) {
         return res;
+    }
 
     const auto roleNames = this->roleNames();
-    for (const auto &role : roleNames)
+    for (const auto &role : roleNames) {
         res.insert(role, this->index(index, 0).data(FMH::MODEL_NAME_KEY[role]).toString());
+    }
 
     return res;
 }
@@ -55,16 +57,18 @@ QVariantMap MauiModel::get(const int &index) const
 QVariantList MauiModel::getAll() const
 {
     QVariantList res;
-    for (auto i = 0; i < this->rowCount(); i++)
+    for (auto i = 0; i < this->rowCount(); i++) {
         res << this->get(i);
+    }
 
     return res;
 }
 
 void MauiModel::setFilter(const QString &filter)
 {
-    if (this->m_filter == filter)
+    if (this->m_filter == filter) {
         return;
+    }
 
     this->m_filter = filter;
     emit this->filterChanged(this->m_filter);
@@ -78,8 +82,9 @@ const QString MauiModel::getFilter() const
 
 void MauiModel::setSortOrder(const Qt::SortOrder &sortOrder)
 {
-    if (this->m_sortOrder == sortOrder)
+    if (this->m_sortOrder == sortOrder) {
         return;
+    }
 
     this->m_sortOrder = sortOrder;
     emit this->sortOrderChanged(this->m_sortOrder);
@@ -93,8 +98,9 @@ Qt::SortOrder MauiModel::getSortOrder() const
 
 void MauiModel::setSort(const QString &sort)
 {
-    if (this->m_sort == sort)
+    if (this->m_sort == sort) {
         return;
+    }
 
     this->m_sort = sort;
     emit this->sortChanged(this->m_sort);
@@ -129,10 +135,11 @@ bool MauiModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent)
     for (const auto &role : roleNames) {
         QModelIndex index = sourceModel()->index(sourceRow, 0, sourceParent);
         const auto data = this->sourceModel()->data(index, FMH::MODEL_NAME_KEY[role]).toString();
-        if (data.contains(this->filterRegExp()))
+        if (data.contains(this->filterRegExp())) {
             return true;
-        else
+        } else {
             continue;
+        }
     }
 
     return false;
@@ -152,8 +159,9 @@ void MauiModel::PrivateAbstractListModel::setList(MauiList *value)
 {
     beginResetModel();
 
-    if (this->list)
+    if (this->list) {
         this->list->disconnect(this);
+    }
 
     this->list = value;
 
@@ -213,18 +221,14 @@ MauiModel::PrivateAbstractListModel::PrivateAbstractListModel(MauiModel *model)
     , list(nullptr)
     , m_model(model)
 {
-    connect(this, &QAbstractListModel::rowsInserted, this, [this](QModelIndex, int, int)
-    {
-        if(this->list)
-        {
+    connect(this, &QAbstractListModel::rowsInserted, this, [this](QModelIndex, int, int) {
+        if (this->list) {
             emit this->list->countChanged();
         }
     }, Qt::DirectConnection);
 
-    connect(this, &QAbstractListModel::rowsRemoved, this, [this](QModelIndex, int, int)
-    {
-        if(this->list)
-        {
+    connect(this, &QAbstractListModel::rowsRemoved, this, [this](QModelIndex, int, int) {
+        if (this->list) {
             emit this->list->countChanged();
         }
     }, Qt::DirectConnection);
@@ -232,23 +236,26 @@ MauiModel::PrivateAbstractListModel::PrivateAbstractListModel(MauiModel *model)
 
 int MauiModel::PrivateAbstractListModel::rowCount(const QModelIndex &parent) const
 {
-    if (parent.isValid() || !list)
+    if (parent.isValid() || !list) {
         return 0;
+    }
 
     return list->items().size();
 }
 
 QVariant MauiModel::PrivateAbstractListModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid() || !list)
+    if (!index.isValid() || !list) {
         return QVariant();
+    }
 
     auto value = list->items().at(index.row())[static_cast<FMH::MODEL_KEY>(role)];
 
     if (role == FMH::MODEL_KEY::ADDDATE || role == FMH::MODEL_KEY::DATE || role == FMH::MODEL_KEY::MODIFIED || role == FMH::MODEL_KEY::RELEASEDATE) {
         const auto date = QDateTime::fromString(value, Qt::TextDate);
-        if (date.isValid())
+        if (date.isValid()) {
             return date;
+        }
     }
 
     return value;
@@ -265,8 +272,9 @@ bool MauiModel::PrivateAbstractListModel::setData(const QModelIndex &index, cons
 
 Qt::ItemFlags MauiModel::PrivateAbstractListModel::flags(const QModelIndex &index) const
 {
-    if (!index.isValid())
+    if (!index.isValid()) {
         return Qt::NoItemFlags;
+    }
 
     return Qt::ItemIsEditable; // FIXME: Implement me!
 }
@@ -275,8 +283,9 @@ QHash<int, QByteArray> MauiModel::PrivateAbstractListModel::roleNames() const
 {
     QHash<int, QByteArray> names;
 
-    for (const auto &key : FMH::MODEL_NAME.keys())
+    for (const auto &key : FMH::MODEL_NAME.keys()) {
         names[key] = QString(FMH::MODEL_NAME[key]).toUtf8();
+    }
 
     return names;
 }

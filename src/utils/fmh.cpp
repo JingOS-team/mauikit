@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2021 Beijing Jingling Information System Technology Co., Ltd. All rights reserved.
+ *
+ * Authors:
+ * Zhang He Gang <zhanghegang@jingos.com>
+ *
+ */
 #include "fmh.h"
 #include "fmstatic.h"
 
@@ -22,8 +29,9 @@ const QString mapValue(const QVariantMap &map, const FMH::MODEL_KEY &key)
 const QVariantMap toMap(const FMH::MODEL &model)
 {
     QVariantMap map;
-    for (const auto &key : model.keys())
+    for (const auto &key : model.keys()) {
         map.insert(FMH::MODEL_NAME[key], model[key]);
+    }
 
     return map;
 }
@@ -31,8 +39,9 @@ const QVariantMap toMap(const FMH::MODEL &model)
 const FMH::MODEL toModel(const QVariantMap &map)
 {
     FMH::MODEL model;
-    for (const auto &key : map.keys())
+    for (const auto &key : map.keys()) {
         model.insert(FMH::MODEL_NAME_KEY[key], map[key].toString());
+    }
 
     return model;
 }
@@ -40,8 +49,7 @@ const FMH::MODEL toModel(const QVariantMap &map)
 const FMH::MODEL_LIST toModelList(const QVariantList &list)
 {
     FMH::MODEL_LIST res;
-    return std::accumulate(list.constBegin(), list.constEnd(), res, [](FMH::MODEL_LIST &res, const QVariant &item) -> FMH::MODEL_LIST
-    {
+    return std::accumulate(list.constBegin(), list.constEnd(), res, [](FMH::MODEL_LIST &res, const QVariant &item) -> FMH::MODEL_LIST {
         res << FMH::toModel(item.toMap());
         return res;
     });
@@ -50,8 +58,7 @@ const FMH::MODEL_LIST toModelList(const QVariantList &list)
 const QVariantList toMapList(const FMH::MODEL_LIST &list)
 {
     QVariantList res;
-    return std::accumulate(list.constBegin(), list.constEnd(), res, [](QVariantList &res, const FMH::MODEL &item) -> QVariantList
-    {
+    return std::accumulate(list.constBegin(), list.constEnd(), res, [](QVariantList &res, const FMH::MODEL &item) -> QVariantList {
         res << FMH::toMap(item);
         return res;
     });
@@ -60,8 +67,7 @@ const QVariantList toMapList(const FMH::MODEL_LIST &list)
 const FMH::MODEL filterModel(const FMH::MODEL &model, const QVector<FMH::MODEL_KEY> &keys)
 {
     FMH::MODEL res;
-    return std::accumulate(keys.constBegin(), keys.constEnd(), res, [=](FMH::MODEL &res, const FMH::MODEL_KEY &key) -> FMH::MODEL
-    {
+    return std::accumulate(keys.constBegin(), keys.constEnd(), res, [=](FMH::MODEL &res, const FMH::MODEL_KEY &key) -> FMH::MODEL {
         if (model.contains(key))
             res[key] = model[key];
         return res;
@@ -71,8 +77,7 @@ const FMH::MODEL filterModel(const FMH::MODEL &model, const QVector<FMH::MODEL_K
 const QStringList modelToList(const FMH::MODEL_LIST &list, const FMH::MODEL_KEY &key)
 {
     QStringList res;
-    return std::accumulate(list.constBegin(), list.constEnd(), res, [key](QStringList &res, const FMH::MODEL &item) -> QStringList
-    {
+    return std::accumulate(list.constBegin(), list.constEnd(), res, [key](QStringList &res, const FMH::MODEL &item) -> QStringList {
         if (item.contains(key))
             res << item[key];
         return res;
@@ -137,17 +142,19 @@ bool fileExists(const QUrl &path)
     return QFileInfo::exists(path.toLocalFile());
 }
 
-const QString fileDir(const QUrl &path) // the directory path of the file
+const QString fileDir(const QUrl &path)   // the directory path of the file
 {
     QString res = path.toString();
     if (path.isLocalFile()) {
         const QFileInfo file(path.toLocalFile());
-        if (file.isDir())
+        if (file.isDir()) {
             res = path.toString();
-        else
+        } else {
             res = QUrl::fromLocalFile(file.dir().absolutePath()).toString();
-    } else
+        }
+    } else {
         qWarning() << "The path is not a local one. FM::fileDir";
+    }
 
     return res;
 }
@@ -171,8 +178,9 @@ const QVariantMap dirConf(const QUrl &path)
         return QVariantMap();
     }
 
-    if (!fileExists(path))
+    if (!fileExists(path)) {
         return QVariantMap();
+    }
 
     QString icon, iconsize, hidden, detailview, showthumbnail, showterminal;
 
@@ -216,15 +224,15 @@ const QVariantMap dirConf(const QUrl &path)
 #endif
 
     return QVariantMap({{MODEL_NAME[MODEL_KEY::ICON], icon.isEmpty() ? "folder" : icon},
-                        {MODEL_NAME[MODEL_KEY::ICONSIZE], iconsize},
-                        {MODEL_NAME[MODEL_KEY::COUNT], count},
-                        {MODEL_NAME[MODEL_KEY::SHOWTERMINAL], showterminal.isEmpty() ? "false" : showterminal},
-                        {MODEL_NAME[MODEL_KEY::SHOWTHUMBNAIL], showthumbnail.isEmpty() ? "false" : showthumbnail},
-                        {MODEL_NAME[MODEL_KEY::DETAILVIEW], detailview.isEmpty() ? "false" : detailview},
-                        {MODEL_NAME[MODEL_KEY::HIDDEN], hidden.isEmpty() ? false : (hidden == "true" ? true : false)},
-                        {MODEL_NAME[MODEL_KEY::SORTBY], sortby},
-                        {MODEL_NAME[MODEL_KEY::FOLDERSFIRST], foldersFirst},
-                        {MODEL_NAME[MODEL_KEY::VIEWTYPE], viewType}});
+        {MODEL_NAME[MODEL_KEY::ICONSIZE], iconsize},
+        {MODEL_NAME[MODEL_KEY::COUNT], count},
+        {MODEL_NAME[MODEL_KEY::SHOWTERMINAL], showterminal.isEmpty() ? "false" : showterminal},
+        {MODEL_NAME[MODEL_KEY::SHOWTHUMBNAIL], showthumbnail.isEmpty() ? "false" : showthumbnail},
+        {MODEL_NAME[MODEL_KEY::DETAILVIEW], detailview.isEmpty() ? "false" : detailview},
+        {MODEL_NAME[MODEL_KEY::HIDDEN], hidden.isEmpty() ? false : (hidden == "true" ? true : false)},
+        {MODEL_NAME[MODEL_KEY::SORTBY], sortby},
+        {MODEL_NAME[MODEL_KEY::FOLDERSFIRST], foldersFirst},
+        {MODEL_NAME[MODEL_KEY::VIEWTYPE], viewType}});
 }
 
 void setDirConf(const QUrl &path, const QString &group, const QString &key, const QVariant &value)
@@ -244,7 +252,6 @@ void setDirConf(const QUrl &path, const QString &group, const QString &key, cons
     KConfig file(path.toLocalFile(), KConfig::SimpleConfig);
     auto kgroup = file.group(group);
     kgroup.writeEntry(key, value);
-    // 		file.reparseConfiguration();
     file.sync();
 #endif
 }
@@ -252,9 +259,9 @@ void setDirConf(const QUrl &path, const QString &group, const QString &key, cons
 const QString getIconName(const QUrl &path)
 {
     if (path.isLocalFile() && QFileInfo(path.toLocalFile()).isDir()) {
-        if (folderIcon.contains(path.toString()))
+        if (folderIcon.contains(path.toString())) {
             return folderIcon[path.toString()];
-        else {
+        } else {
             const auto icon = dirConf(QString(path.toString() + "/%1").arg(".directory"))[MODEL_NAME[MODEL_KEY::ICON]].toString();
             return icon.isEmpty() ? "folder" : icon;
         }
@@ -286,14 +293,12 @@ const QString getMime(const QUrl &path)
 const QUrl thumbnailUrl(const QUrl &url, const QString &mimetype)
 {
 #if defined Q_OS_LINUX && !defined Q_OS_ANDROID
-    if(checkFileType(FILTER_TYPE::DOCUMENT, mimetype) || checkFileType(FILTER_TYPE::VIDEO, mimetype))
-    {
+    if (checkFileType(FILTER_TYPE::DOCUMENT, mimetype) || checkFileType(FILTER_TYPE::VIDEO, mimetype)) {
         return QUrl("image://thumbnailer/"+url.toString());
     }
 #endif
 
-    if(checkFileType(FILTER_TYPE::IMAGE, mimetype))
-    {
+    if (checkFileType(FILTER_TYPE::IMAGE, mimetype)) {
         return url;
     }
 
@@ -301,7 +306,7 @@ const QUrl thumbnailUrl(const QUrl &url, const QString &mimetype)
 }
 
 #if !defined Q_OS_ANDROID && defined Q_OS_LINUX
-const FMH::MODEL getFileInfo(const KFileItem &kfile)//hjy model的初始化
+const FMH::MODEL getFileInfo(const KFileItem &kfile)
 {
     QString fileHidden = QVariant(kfile.isHidden()).toString();
     QString fileThumbnailUrl = thumbnailUrl(kfile.mostLocalUrl(), kfile.mimetype()).toString();
@@ -309,19 +314,27 @@ const FMH::MODEL getFileInfo(const KFileItem &kfile)//hjy model的初始化
     QString fileNickName = filePath;
     QString fileLabel = kfile.name();
     QString fileCount = kfile.isLocalFile() && kfile.isDir() ? QString::number(QDir(kfile.localPath()).count() - 2) : "0";
-    if(filePath.contains("trash:/") && fileLabel.indexOf("0-") != -1)
-    {
-        fileLabel = fileLabel.mid(2, fileLabel.length() + 1);
-        if(fileLabel.startsWith(".") && fileLabel.endsWith(".jpg"))
-        {
+    if (filePath.contains("trash:/") && fileLabel.indexOf("-") != -1) {
+        fileLabel = fileLabel.mid(fileLabel.indexOf("-") + 1, fileLabel.length() + 1);
+        if (fileLabel.startsWith(".") && fileLabel.endsWith(".jpg")) {
             fileHidden = "true";
         }
         filePath = HomePath + "/.local/share/Trash/files/" + fileLabel;
         fileThumbnailUrl = filePath;
+        QString fileInfoPath = filePath;
+        if (fileInfoPath.startsWith("file://")) {
+            fileInfoPath = fileInfoPath.mid(7);
+        }
+        QFileInfo trashFile(fileInfoPath);
+        if (!trashFile.exists()) {
+            return MODEL{};
+        }
+        fileCount = trashFile.isDir() ? QString::number(QDir(fileInfoPath).count()) : "0";
     }
 
     return MODEL {{MODEL_KEY::LABEL, fileLabel},
         {MODEL_KEY::NAME, kfile.name().remove(kfile.name().lastIndexOf("."), kfile.name().size())},
+        {MODEL_KEY::SUFFIX, kfile.name().remove(0,kfile.name().lastIndexOf("."))},
         {MODEL_KEY::DATE, kfile.time(KFileItem::FileTimes::CreationTime).toString(Qt::TextDate)},
         {MODEL_KEY::MODIFIED, kfile.time(KFileItem::FileTimes::ModificationTime).toString(Qt::TextDate)},
         {MODEL_KEY::LAST_READ, kfile.time(KFileItem::FileTimes::AccessTime).toString(Qt::TextDate)},
@@ -339,106 +352,81 @@ const FMH::MODEL getFileInfo(const KFileItem &kfile)//hjy model的初始化
         {MODEL_KEY::MIME, kfile.mimetype()},
         {MODEL_KEY::GROUP, kfile.group()},
         {MODEL_KEY::ICON, kfile.iconName()},
-        {MODEL_KEY::SIZE, QString::number(kfile.size())}, 
+        // {MODEL_KEY::SIZE, QString::number(kfile.size())},
+        {MODEL_KEY::SIZE, QString::number((qulonglong)kfile.size())},
         {MODEL_KEY::OWNER, kfile.user()},
-        {MODEL_KEY::NICKNAME, fileNickName},//add by hjy 回收站的文件目录以trash开头，不是正常目录，导致很多逻辑不通。可是修改以后，在删除和恢复的时候，kde自己又是使用的trash来判断，所以这里记录来下，回收站的时候使用
+        {MODEL_KEY::NICKNAME, fileNickName},
         {MODEL_KEY::BOOK, "false"},
         // {MODEL_KEY::TAGS, tagIndex},
         {MODEL_KEY::COUNT, fileCount}};
-        
+
+}
+#endif
+
+const FMH::MODEL getFileInfoModel(const QUrl &path)
+{
+    MODEL res;
+#if defined Q_OS_ANDROID || defined Q_OS_WIN32 || defined Q_OS_MACOS || defined Q_OS_IOS
+    const QFileInfo file(path.toLocalFile());
+    if (!file.exists()) {
+        return MODEL();
+    }
+    const auto mime = getMime(path);
+    res = MODEL {{MODEL_KEY::GROUP, file.group()},
+        {MODEL_KEY::OWNER, file.owner()},
+        {MODEL_KEY::SUFFIX, file.completeSuffix()},
+        {MODEL_KEY::LABEL, /*file.isDir() ? file.baseName() :*/ path == HomePath ? QStringLiteral("Home") : file.fileName()},
+        {MODEL_KEY::NAME, file.fileName()},
+        {MODEL_KEY::DATE,  file.birthTime().toString(Qt::TextDate)},
+        {MODEL_KEY::MODIFIED, file.lastModified().toString(Qt::TextDate)},
+        {MODEL_KEY::LAST_READ, file.lastRead().toString(Qt::TextDate)},
+        {MODEL_KEY::MIME, mime},
+        {MODEL_KEY::SYMLINK, file.symLinkTarget()},
+        {MODEL_KEY::IS_SYMLINK, QVariant(file.isSymLink()).toString()},
+        {MODEL_KEY::IS_FILE, QVariant(file.isFile()).toString()},
+        {MODEL_KEY::HIDDEN, QVariant(file.isHidden()).toString()},
+        {MODEL_KEY::IS_DIR, QVariant(file.isDir()).toString()},
+        {MODEL_KEY::WRITABLE, QVariant(file.isWritable()).toString()},
+        {MODEL_KEY::READABLE, QVariant(file.isReadable()).toString()},
+        {MODEL_KEY::EXECUTABLE, QVariant(file.suffix().endsWith(".desktop")).toString()},
+        {MODEL_KEY::ICON, getIconName(path)},
+        {MODEL_KEY::SIZE, QString::number(file.size()) /*locale.formattedDataSize(file.size())*/},
+        {MODEL_KEY::PATH, path.toString()},
+        {MODEL_KEY::URL, path.toString()},
+        {MODEL_KEY::THUMBNAIL, thumbnailUrl(path, mime).toString()},
+        {MODEL_KEY::COUNT, file.isDir() ? QString::number(QDir(path.toLocalFile()).count() - 2) : "0"}};
+#else
+    res = getFileInfo(KFileItem(path, KFileItem::MimeTypeDetermination::NormalMimeTypeDetermination));
+#endif
+    return res;
 }
 
+const QVariantMap getFileInfo(const QUrl &path)
+{
+    return toMap(getFileInfoModel(path));
+}
 
-    // return MODEL {{MODEL_KEY::LABEL, kfile.name()},
-    //     {MODEL_KEY::NAME, kfile.name().remove(kfile.name().lastIndexOf("."), kfile.name().size())},
-    //     {MODEL_KEY::DATE, kfile.time(KFileItem::FileTimes::CreationTime).toString(Qt::TextDate)},
-    //     {MODEL_KEY::MODIFIED, kfile.time(KFileItem::FileTimes::ModificationTime).toString(Qt::TextDate)},
-    //     {MODEL_KEY::LAST_READ, kfile.time(KFileItem::FileTimes::AccessTime).toString(Qt::TextDate)},
-    //     {MODEL_KEY::PATH, kfile.mostLocalUrl().toString()},
-    //     {MODEL_KEY::URL, kfile.mostLocalUrl().toString()},
-    //     {MODEL_KEY::THUMBNAIL, thumbnailUrl(kfile.mostLocalUrl(), kfile.mimetype()).toString()},
-    //     {MODEL_KEY::SYMLINK, kfile.linkDest()},
-    //     {MODEL_KEY::IS_SYMLINK, QVariant(kfile.isLink()).toString()},
-    //     {MODEL_KEY::HIDDEN, QVariant(kfile.isHidden()).toString()},
-    //     {MODEL_KEY::IS_DIR, QVariant(kfile.isDir()).toString()},
-    //     {MODEL_KEY::IS_FILE, QVariant(kfile.isFile()).toString()},
-    //     {MODEL_KEY::WRITABLE, QVariant(kfile.isWritable()).toString()},
-    //     {MODEL_KEY::READABLE, QVariant(kfile.isReadable()).toString()},
-    //     {MODEL_KEY::EXECUTABLE, QVariant(kfile.isDesktopFile()).toString()},
-    //     {MODEL_KEY::MIME, kfile.mimetype()},
-    //     {MODEL_KEY::GROUP, kfile.group()},
-    //     {MODEL_KEY::ICON, kfile.iconName()},
-    //     {MODEL_KEY::SIZE, QString::number(kfile.size())}, 
-    //     // {MODEL_KEY::SIZE, QString::number(kfile.recursiveSize())},
-    //     {MODEL_KEY::OWNER, kfile.user()},
-    //     {MODEL_KEY::COUNT, kfile.isLocalFile() && kfile.isDir() ? QString::number(QDir(kfile.localPath()).count() - 2) : "0"}};
-    //     }
-#endif
+const MODEL getDirInfoModel(const QUrl &path, const QString &type)
+{
+    auto res = getFileInfoModel(path);
+    res[MODEL_KEY::TYPE] = type;
+    return res;
+}
 
-        const FMH::MODEL getFileInfoModel(const QUrl &path)
-        {
-            MODEL res;
-#if defined Q_OS_ANDROID || defined Q_OS_WIN32 || defined Q_OS_MACOS || defined Q_OS_IOS
-            const QFileInfo file(path.toLocalFile());
-            if (!file.exists())
-                return MODEL();
-            const auto mime = getMime(path);
-            res = MODEL {{MODEL_KEY::GROUP, file.group()},
-            {MODEL_KEY::OWNER, file.owner()},
-            {MODEL_KEY::SUFFIX, file.completeSuffix()},
-            {MODEL_KEY::LABEL, /*file.isDir() ? file.baseName() :*/ path == HomePath ? QStringLiteral("Home") : file.fileName()},
-            {MODEL_KEY::NAME, file.fileName()},
-            {MODEL_KEY::DATE,  file.birthTime().toString(Qt::TextDate)},
-            {MODEL_KEY::MODIFIED, file.lastModified().toString(Qt::TextDate)},
-            {MODEL_KEY::LAST_READ, file.lastRead().toString(Qt::TextDate)},
-            {MODEL_KEY::MIME, mime},
-            {MODEL_KEY::SYMLINK, file.symLinkTarget()},
-            {MODEL_KEY::IS_SYMLINK, QVariant(file.isSymLink()).toString()},
-            {MODEL_KEY::IS_FILE, QVariant(file.isFile()).toString()},
-            {MODEL_KEY::HIDDEN, QVariant(file.isHidden()).toString()},
-            {MODEL_KEY::IS_DIR, QVariant(file.isDir()).toString()},
-            {MODEL_KEY::WRITABLE, QVariant(file.isWritable()).toString()},
-            {MODEL_KEY::READABLE, QVariant(file.isReadable()).toString()},
-            {MODEL_KEY::EXECUTABLE, QVariant(file.suffix().endsWith(".desktop")).toString()},
-            {MODEL_KEY::ICON, getIconName(path)},
-            {MODEL_KEY::SIZE, QString::number(file.size()) /*locale.formattedDataSize(file.size())*/},
-            {MODEL_KEY::PATH, path.toString()},
-            {MODEL_KEY::URL, path.toString()},
-            {MODEL_KEY::THUMBNAIL, thumbnailUrl(path, mime).toString()},
-            {MODEL_KEY::COUNT, file.isDir() ? QString::number(QDir(path.toLocalFile()).count() - 2) : "0"}};
-        #else
+const QVariantMap getDirInfo(const QUrl &path)
+{
+    return toMap(getDirInfoModel(path));
+}
 
-            res = getFileInfo(KFileItem(path, KFileItem::MimeTypeDetermination::NormalMimeTypeDetermination));
-#endif
-            return res;
-        }
+PATHTYPE_KEY getPathType(const QUrl &url)
+{
+    return PATHTYPE_SCHEME_NAME[url.scheme()];
+}
 
-        const QVariantMap getFileInfo(const QUrl &path)
-        {
-            return toMap(getFileInfoModel(path));
-        }
-
-        const MODEL getDirInfoModel(const QUrl &path, const QString &type)
-        {
-            auto res = getFileInfoModel(path);
-            res[MODEL_KEY::TYPE] = type;
-            return res;
-        }
-
-        const QVariantMap getDirInfo(const QUrl &path)
-        {
-            return toMap(getDirInfoModel(path));
-        }
-
-        PATHTYPE_KEY getPathType(const QUrl &url)
-        {
-            return PATHTYPE_SCHEME_NAME[url.scheme()];
-        }
-
-        bool checkFileType(const FMH::FILTER_TYPE &type, const QString &mimeTypeName)
-        {
-            return SUPPORTED_MIMETYPES[type].contains(mimeTypeName);
-        }
+bool checkFileType(const FMH::FILTER_TYPE &type, const QString &mimeTypeName)
+{
+    return SUPPORTED_MIMETYPES[type].contains(mimeTypeName);
+}
 
 
 }

@@ -25,8 +25,9 @@ QVariant SettingSection::defaultValue() const
 
 void SettingSection::setKey(QString key)
 {
-    if (m_key == key)
+    if (m_key == key) {
         return;
+    }
 
     m_key = key;
     emit keyChanged(m_key);
@@ -34,8 +35,9 @@ void SettingSection::setKey(QString key)
 
 void SettingSection::setGroup(QString group)
 {
-    if (m_group == group)
+    if (m_group == group) {
         return;
+    }
 
     m_group = group;
     emit groupChanged(m_group);
@@ -48,8 +50,9 @@ void SettingSection::setValue(QVariant value)
 
 void SettingSection::setDefaultValue(QVariant defaultValue)
 {
-    if (m_defaultValue == defaultValue)
+    if (m_defaultValue == defaultValue) {
         return;
+    }
 
     m_defaultValue = defaultValue;
     emit defaultValueChanged(m_defaultValue);

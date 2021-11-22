@@ -73,17 +73,19 @@ static QAndroidJniObject getAndroidWindow()
 
 void MAUIAndroid::statusbarColor(const QString &bg, const bool &light)
 {
-    if (QtAndroid::androidSdkVersion() <= 23)
+    if (QtAndroid::androidSdkVersion() <= 23) {
         return;
+    }
 
     QtAndroid::runOnAndroidThread([=]() {
         QAndroidJniObject window = getAndroidWindow();
         QAndroidJniObject view = window.callObjectMethod("getDecorView", "()Landroid/view/View;");
         int visibility = view.callMethod<int>("getSystemUiVisibility", "()I");
-        if (light)
+        if (light) {
             visibility |= SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-        else
+        } else {
             visibility &= ~SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        }
         view.callMethod<void>("setSystemUiVisibility", "(I)V", visibility);
         window.callMethod<void>("setStatusBarColor", "(I)V", QColor(bg).rgba());
     });
@@ -91,17 +93,19 @@ void MAUIAndroid::statusbarColor(const QString &bg, const bool &light)
 
 void MAUIAndroid::navBarColor(const QString &bg, const bool &light)
 {
-    if (QtAndroid::androidSdkVersion() <= 23)
+    if (QtAndroid::androidSdkVersion() <= 23) {
         return;
+    }
 
     QtAndroid::runOnAndroidThread([=]() {
         QAndroidJniObject window = getAndroidWindow();
         QAndroidJniObject view = window.callObjectMethod("getDecorView", "()Landroid/view/View;");
         int visibility = view.callMethod<int>("getSystemUiVisibility", "()I");
-        if (light)
+        if (light) {
             visibility |= SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
-        else
+        } else {
             visibility &= ~SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        }
         view.callMethod<void>("setSystemUiVisibility", "(I)V", visibility);
         window.callMethod<void>("setNavigationBarColor", "(I)V", QColor(bg).rgba());
     });
@@ -114,7 +118,6 @@ void MAUIAndroid::shareFiles(const QList<QUrl> &urls)
 
 void MAUIAndroid::shareDialog(const QUrl &url)
 {
-    qDebug() << "trying to share dialog";
     QAndroidJniEnvironment _env;
     QAndroidJniObject activity = QAndroidJniObject::callStaticObjectMethod("org/qtproject/qt5/android/QtNative", "activity", "()Landroid/app/Activity;"); // activity is valid
     if (_env->ExceptionCheck()) {
@@ -122,32 +125,30 @@ void MAUIAndroid::shareDialog(const QUrl &url)
         throw InterfaceConnFailedException();
     }
     if (activity.isValid()) {
-        qDebug() << "trying to share dialog << valid";
 
         QMimeDatabase mimedb;
         QString mimeType = mimedb.mimeTypeForFile(url.toLocalFile()).name();
 
         QAndroidJniObject::callStaticMethod<void>("com/kde/maui/tools/SendIntent",
-                                                  "share",
-                                                  "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
-                                                  activity.object<jobject>(),
-                                                  QAndroidJniObject::fromString(url.toLocalFile()).object<jstring>(),
-                                                  QAndroidJniObject::fromString(mimeType).object<jstring>(),
-                                                  QAndroidJniObject::fromString(QString("%1.fileprovider").arg(qApp->organizationDomain())).object<jstring>());
+                "share",
+                "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
+                activity.object<jobject>(),
+                QAndroidJniObject::fromString(url.toLocalFile()).object<jstring>(),
+                QAndroidJniObject::fromString(mimeType).object<jstring>(),
+                QAndroidJniObject::fromString(QString("%1.fileprovider").arg(qApp->organizationDomain())).object<jstring>());
 
         if (_env->ExceptionCheck()) {
-            qDebug() << "trying to share dialog << exception";
 
             _env->ExceptionClear();
             throw InterfaceConnFailedException();
         }
-    } else
+    } else {
         throw InterfaceConnFailedException();
+    }
 }
 
 void MAUIAndroid::shareText(const QString &text)
 {
-    qDebug() << "trying to share text";
     QAndroidJniEnvironment _env;
     QAndroidJniObject activity = QAndroidJniObject::callStaticObjectMethod("org/qtproject/qt5/android/QtNative", "activity", "()Landroid/app/Activity;"); // activity is valid
     if (_env->ExceptionCheck()) {
@@ -161,13 +162,13 @@ void MAUIAndroid::shareText(const QString &text)
             _env->ExceptionClear();
             throw InterfaceConnFailedException();
         }
-    } else
+    } else {
         throw InterfaceConnFailedException();
+    }
 }
 
 void MAUIAndroid::shareLink(const QString &link)
 {
-    qDebug() << "trying to share link";
     QAndroidJniEnvironment _env;
     QAndroidJniObject activity = QAndroidJniObject::callStaticObjectMethod("org/qtproject/qt5/android/QtNative", "activity", "()Landroid/app/Activity;"); // activity is valid
     if (_env->ExceptionCheck()) {
@@ -181,23 +182,23 @@ void MAUIAndroid::shareLink(const QString &link)
             _env->ExceptionClear();
             throw InterfaceConnFailedException();
         }
-    } else
+    } else {
         throw InterfaceConnFailedException();
+    }
 }
 
 void MAUIAndroid::shareContact(const QString &id)
 {
     QAndroidJniObject::callStaticMethod<void>("com/kde/maui/tools/Union",
-                                              "shareContact",
-                                              "(Landroid/content/Context;"
-                                              "Ljava/lang/String;)V",
-                                              QtAndroid::androidActivity().object<jobject>(),
-                                              QAndroidJniObject::fromString(id).object<jstring>());
+            "shareContact",
+            "(Landroid/content/Context;"
+            "Ljava/lang/String;)V",
+            QtAndroid::androidActivity().object<jobject>(),
+            QAndroidJniObject::fromString(id).object<jstring>());
 }
 
 void MAUIAndroid::sendSMS(const QString &tel, const QString &subject, const QString &message)
 {
-    qDebug() << "trying to send sms text";
     QAndroidJniEnvironment _env;
     QAndroidJniObject activity = QAndroidJniObject::callStaticObjectMethod("org/qtproject/qt5/android/QtNative", "activity", "()Landroid/app/Activity;"); // activity is valid
     if (_env->ExceptionCheck()) {
@@ -206,24 +207,24 @@ void MAUIAndroid::sendSMS(const QString &tel, const QString &subject, const QStr
     }
     if (activity.isValid()) {
         QAndroidJniObject::callStaticMethod<void>("com/kde/maui/tools/SendIntent",
-                                                  "sendSMS",
-                                                  "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
-                                                  activity.object<jobject>(),
-                                                  QAndroidJniObject::fromString(tel).object<jstring>(),
-                                                  QAndroidJniObject::fromString(subject).object<jstring>(),
-                                                  QAndroidJniObject::fromString(message).object<jstring>());
+                "sendSMS",
+                "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
+                activity.object<jobject>(),
+                QAndroidJniObject::fromString(tel).object<jstring>(),
+                QAndroidJniObject::fromString(subject).object<jstring>(),
+                QAndroidJniObject::fromString(message).object<jstring>());
 
         if (_env->ExceptionCheck()) {
             _env->ExceptionClear();
             throw InterfaceConnFailedException();
         }
-    } else
+    } else {
         throw InterfaceConnFailedException();
+    }
 }
 
 void MAUIAndroid::openUrl(const QUrl &url)
 {
-    qDebug() << "trying to open file with";
     QAndroidJniEnvironment _env;
     QAndroidJniObject activity = QAndroidJniObject::callStaticObjectMethod("org/qtproject/qt5/android/QtNative", "activity", "()Landroid/app/Activity;"); // activity is valid
     if (_env->ExceptionCheck()) {
@@ -232,18 +233,19 @@ void MAUIAndroid::openUrl(const QUrl &url)
     }
     if (activity.isValid()) {
         QAndroidJniObject::callStaticMethod<void>("com/kde/maui/tools/SendIntent",
-                                                  "openUrl",
-                                                  "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;)V",
-                                                  activity.object<jobject>(),
-                                                  QAndroidJniObject::fromString(url.toLocalFile()).object<jstring>(),
-                                                  QAndroidJniObject::fromString(QString("%1.fileprovider").arg(qApp->organizationDomain())).object<jstring>());
+                "openUrl",
+                "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;)V",
+                activity.object<jobject>(),
+                QAndroidJniObject::fromString(url.toLocalFile()).object<jstring>(),
+                QAndroidJniObject::fromString(QString("%1.fileprovider").arg(qApp->organizationDomain())).object<jstring>());
 
         if (_env->ExceptionCheck()) {
             _env->ExceptionClear();
             throw InterfaceConnFailedException();
         }
-    } else
+    } else {
         throw InterfaceConnFailedException();
+    }
 }
 
 QString MAUIAndroid::homePath()
@@ -255,13 +257,14 @@ QString MAUIAndroid::homePath()
 }
 
 QStringList MAUIAndroid::sdDirs()
-{    
+{
     QStringList res;
 
     QAndroidJniObject mediaDir = QAndroidJniObject::callStaticObjectMethod("com/kde/maui/tools/SDCard", "findSdCardPath", "(Landroid/content/Context;)Ljava/io/File;", QtAndroid::androidActivity().object<jobject>());
 
-    if(mediaDir == NULL)
+    if (mediaDir == NULL) {
         return res;
+    }
 
     QAndroidJniObject mediaPath = mediaDir.callObjectMethod( "getAbsolutePath", "()Ljava/lang/String;" );
     QString dataAbsPath = mediaPath.toString();
@@ -295,8 +298,9 @@ void MAUIAndroid::fileChooser()
             _env->ExceptionClear();
             throw InterfaceConnFailedException();
         }
-    } else
+    } else {
         throw InterfaceConnFailedException();
+    }
 }
 
 QVariantList MAUIAndroid::transform(const QAndroidJniObject &obj)
@@ -398,7 +402,6 @@ QStringList MAUIAndroid::defaultPaths()
 
 bool MAUIAndroid::checkRunTimePermissions(const QStringList &permissions)
 {
-    qDebug() << "CHECKIGN PERMISSSIONS";
 
     //    QtAndroid::PermissionResult r = QtAndroid::checkPermission("android.permission.WRITE_EXTERNAL_STORAGE");
     //    if(r == QtAndroid::PermissionResult::Denied) {
@@ -429,7 +432,6 @@ bool MAUIAndroid::checkRunTimePermissions(const QStringList &permissions)
         }
     }
 
-    qDebug() << "Permissions granted!";
     return true;
 }
 
@@ -444,12 +446,12 @@ bool MAUIAndroid::hasKeyboard()
         QAndroidJniObject config = resources.callObjectMethod("getConfiguration", "()Landroid/content/res/Configuration;");
         int value = config.getField<jint>("keyboard");
         //        QVariant v = value.toString();
-        qDebug() << "KEYBOARD" << value;
 
         return value == 2 || value == 3; // KEYBOARD_12KEY || KEYBOARD_QWERTY
 
-    } else
+    } else {
         throw InterfaceConnFailedException();
+    }
 }
 
 bool MAUIAndroid::hasMouse()
@@ -459,7 +461,6 @@ bool MAUIAndroid::hasMouse()
 
 void MAUIAndroid::handleActivityResult(int receiverRequestCode, int resultCode, const QAndroidJniObject &data)
 {
-    qDebug() << "ACTIVITY RESULTS" << receiverRequestCode;
     emit this->hasKeyboardChanged();
     jint RESULT_OK = QAndroidJniObject::getStaticField<jint>("android/app/Activity", "RESULT_OK");
 

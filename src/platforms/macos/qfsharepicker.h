@@ -29,7 +29,7 @@ param datas Datas items to share. *
 param block Block of code to select item.
  *
 author Andrew Shapovalov*/
-- (instancetype)initWithView:(NSView*)view frame:(NSRect)frame datasArray:(NSArray*)datas onItemClicked:(QfSharePickerItemClicked)block;
+    - (instancetype)initWithView:(NSView*)view frame:(NSRect)frame datasArray:(NSArray*)datas onItemClicked:(QfSharePickerItemClicked)block;
 
 end
 

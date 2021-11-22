@@ -71,8 +71,6 @@ void ExtendedTheme::setOriginalSchemeFile(const QString &file)
 
     m_originalSchemePath = file;
 
-    qDebug() << "Window Buttons : plasma theme original colors ::: " << m_originalSchemePath;
-
     updateDefaultScheme();
 
     emit themeChanged();
@@ -101,8 +99,6 @@ void ExtendedTheme::updateDefaultScheme()
 
     m_colorsScheme = new SchemeColors(this, m_colorsSchemePath, true);
     connect(m_colorsScheme, &SchemeColors::colorsChanged, this, &ExtendedTheme::themeChanged);
-
-    qDebug() << "Window Buttons : plasma theme default colors ::: " << m_colorsSchemePath;
 
     emit colorsChanged();
 }
@@ -133,10 +129,6 @@ void ExtendedTheme::loadThemePaths()
     } else {
         m_themeWidgetsPath = AppletDecoration::standardPath("plasma/desktoptheme/default/widgets");
     }
-
-    qDebug() << "Window Buttons : current plasma theme ::: " << m_theme.themeName();
-    qDebug() << "Window Buttons : theme path ::: " << m_themePath;
-    qDebug() << "Window Buttons : theme widgets path ::: " << m_themeWidgetsPath;
 
     //! clear kde connections
     for (auto &c : m_kdeConnections) {

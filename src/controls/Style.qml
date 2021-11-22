@@ -119,7 +119,6 @@ QtObject
         var closest = values.reduce(function(prev, curr) {
             return (Math.abs(curr - size) < Math.abs(prev - size) ? curr : prev);
         });
-        console.log(size, closest, values)
         return closest;
     }  
 }

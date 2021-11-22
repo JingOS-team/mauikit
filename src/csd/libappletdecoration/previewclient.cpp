@@ -39,7 +39,7 @@ PreviewClient::PreviewClient(KDecoration2::DecoratedClient *c, KDecoration2::Dec
     , ApplicationMenuEnabledDecoratedClientPrivate(c, decoration)
     , m_icon(QIcon::fromTheme(QStringLiteral("start-here-kde")))
     , m_iconName(m_icon.name())
-    //  , m_palette(new KWin::Decoration::DecorationPalette(QStringLiteral("kdeglobals")))
+      //  , m_palette(new KWin::Decoration::DecorationPalette(QStringLiteral("kdeglobals")))
     , m_active(true)
     , m_closeable(true)
     , m_keepBelow(false)
@@ -85,17 +85,25 @@ PreviewClient::PreviewClient(KDecoration2::DecoratedClient *c, KDecoration2::Dec
     connect(this, &PreviewClient::iconChanged, c, &KDecoration2::DecoratedClient::iconChanged);
     connect(this, &PreviewClient::paletteChanged, c, &KDecoration2::DecoratedClient::paletteChanged);
     //         connect(this, &PreviewClient::, c, &DecoratedClient::);
-    connect(this, &PreviewClient::maximizedVerticallyChanged, this, [this]() { emit maximizedChanged(isMaximized()); });
-    connect(this, &PreviewClient::maximizedHorizontallyChanged, this, [this]() { emit maximizedChanged(isMaximized()); });
+    connect(this, &PreviewClient::maximizedVerticallyChanged, this, [this]() {
+        emit maximizedChanged(isMaximized());
+    });
+    connect(this, &PreviewClient::maximizedHorizontallyChanged, this, [this]() {
+        emit maximizedChanged(isMaximized());
+    });
     connect(this, &PreviewClient::iconNameChanged, this, [this]() {
         m_icon = QIcon::fromTheme(m_iconName);
         emit iconChanged(m_icon);
     });
-    connect(this, &PreviewClient::desktopChanged, this, [this](int) { emit onAllDesktopsChanged(isOnAllDesktops()); });
+    connect(this, &PreviewClient::desktopChanged, this, [this](int) {
+        emit onAllDesktopsChanged(isOnAllDesktops());
+    });
     /* connect(m_palette, &KWin::Decoration::DecorationPalette::changed, [this]() {
          emit paletteChanged(m_palette->palette());
      });*/
-    auto emitEdgesChanged = [this, c]() { c->adjacentScreenEdgesChanged(adjacentScreenEdges()); };
+    auto emitEdgesChanged = [this, c]() {
+        c->adjacentScreenEdgesChanged(adjacentScreenEdges());
+    };
     connect(this, &PreviewClient::bordersTopEdgeChanged, this, emitEdgesChanged);
     connect(this, &PreviewClient::bordersLeftEdgeChanged, this, emitEdgesChanged);
     connect(this, &PreviewClient::bordersRightEdgeChanged, this, emitEdgesChanged);
@@ -372,12 +380,11 @@ void PreviewClient::setBordersTopEdge(bool enabled)
 void PreviewClient::requestShowToolTip(const QString &text)
 {
     Q_UNUSED(text)
-    // qDebug() << "tooltip show requested with text:" << text;
 }
 
 void PreviewClient::requestHideToolTip()
 {
-    // qDebug() << "tooltip hide requested";
+
 }
 #endif
 
@@ -395,7 +402,7 @@ void PreviewClient::requestClose()
 
 void PreviewClient::requestContextHelp()
 {
-    qDebug() << "context help requested";
+
 }
 
 void PreviewClient::requestToggleMaximization(Qt::MouseButtons buttons)

@@ -55,7 +55,9 @@ MauiApp::MauiApp()
 
 #if defined Q_OS_LINUX && !defined Q_OS_ANDROID
     auto configWatcher = new QFileSystemWatcher({CONF_FILE.toLocalFile()}, this);
-    connect(configWatcher, &QFileSystemWatcher::fileChanged, [&](QString) { getWindowControlsSettings(); });
+    connect(configWatcher, &QFileSystemWatcher::fileChanged, [&](QString) {
+        getWindowControlsSettings();
+    });
 #endif
 
     connect(qApp, &QCoreApplication::aboutToQuit, this, &MauiApp::deleteLater);
@@ -79,14 +81,14 @@ QString MauiApp::getQtVersion()
 
 QString MauiApp::getIconName() const
 {
-    qDebug() << "REQUESTING ICONNAME" << m_iconName << this;
     return m_iconName;
 }
 
 void MauiApp::setIconName(const QString &value)
 {
-    if (m_iconName == value)
+    if (m_iconName == value) {
         return;
+    }
 
     m_iconName = value;
     emit this->iconNameChanged();
@@ -99,8 +101,9 @@ QString MauiApp::getDonationPage() const
 
 void MauiApp::setDonationPage(const QString &value)
 {
-    if (m_donationPage == value)
+    if (m_donationPage == value) {
         return;
+    }
 
     m_donationPage = value;
     emit this->donationPageChanged();
@@ -114,8 +117,9 @@ bool MauiApp::getHandleAccounts() const
 void MauiApp::setHandleAccounts(const bool &value)
 {
 #ifdef COMPONENT_ACCOUNTS
-    if (this->handleAccounts == value)
+    if (this->handleAccounts == value) {
         return;
+    }
 
     this->handleAccounts = value;
     emit this->handleAccountsChanged();
@@ -159,15 +163,15 @@ void MauiApp::setEnableCSD(const bool &value)
 #if defined Q_OS_ANDROID || defined Q_OS_IOS // ignore csd for those
     return;
 #else
-    
-    if (qEnvironmentVariableIsSet("QT_QUICK_CONTROLS_MOBILE")) 
-    {
-        if(QByteArrayList{"1", "true"}.contains(qgetenv("QT_QUICK_CONTROLS_MOBILE")))
-            return;
-    } 
 
-    if (m_enableCSD == value)
+    if (qEnvironmentVariableIsSet("QT_QUICK_CONTROLS_MOBILE")) {
+        if (QByteArrayList{"1", "true"}.contains(qgetenv("QT_QUICK_CONTROLS_MOBILE")))
+            return;
+    }
+
+    if (m_enableCSD == value) {
         return;
+    }
 
     m_enableCSD = value;
     // 	UTIL::saveSettings("CSD", m_enableCSD, "GLOBAL");

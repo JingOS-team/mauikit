@@ -348,7 +348,7 @@ Maui.Page
                     width: control.width
                     implicitHeight: Math.max( control.height, contentHeight)
                     text: document.text
-                    placeholderText: i18n("Body")
+                    placeholderText: i18n("")
                     selectByKeyboard: !Kirigami.Settings.isMobile
                     selectByMouse : !Kirigami.Settings.isMobile
                     textFormat: TextEdit.AutoText

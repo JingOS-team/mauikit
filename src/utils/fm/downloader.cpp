@@ -16,7 +16,6 @@ FMH::Downloader::Downloader(QObject *parent)
 
 FMH::Downloader::~Downloader()
 {
-    qDebug() << "DELETEING DOWNLOADER";
     this->manager->deleteLater();
     this->reply->deleteLater();
     this->reply = nullptr;
@@ -33,7 +32,9 @@ void FMH::Downloader::downloadFile(const QUrl &source, const QUrl &destination)
         emit this->warning(message);
     });
 
-    connect(downloadJob, &KIO::CopyJob::processedSize, [=](KJob *job, qulonglong size) { emit this->progress(size, job->percent()); });
+    connect(downloadJob, &KIO::CopyJob::processedSize, [=](KJob *job, qulonglong size) {
+        emit this->progress(size, job->percent());
+    });
 
     connect(downloadJob, &KIO::CopyJob::finished, [=](KJob *job) {
         emit this->downloadReady();
@@ -41,8 +42,9 @@ void FMH::Downloader::downloadFile(const QUrl &source, const QUrl &destination)
     });
 
 #else
-    if (destination.isEmpty() || source.isEmpty())
+    if (destination.isEmpty() || source.isEmpty()) {
         return;
+    }
 
     QNetworkRequest request;
     request.setUrl(source);
@@ -50,8 +52,9 @@ void FMH::Downloader::downloadFile(const QUrl &source, const QUrl &destination)
 
     file = new QFile;
     file->setFileName(destination.toLocalFile());
-    if (!file->open(QIODevice::WriteOnly))
+    if (!file->open(QIODevice::WriteOnly)) {
         emit this->warning("Can not open file to write download");
+    }
 
     connect(reply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(onDownloadProgress(qint64,qint64)));
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onFinished(QNetworkReply*)));
@@ -62,15 +65,17 @@ void FMH::Downloader::downloadFile(const QUrl &source, const QUrl &destination)
 
 void FMH::Downloader::getArray(const QUrl &fileURL, const QMap<QString, QString> &headers)
 {
-    if (fileURL.isEmpty())
+    if (fileURL.isEmpty()) {
         return;
+    }
 
     QNetworkRequest request;
     request.setUrl(fileURL);
     if (!headers.isEmpty()) {
         const auto keys = headers.keys();
-        for (const auto &key : keys)
+        for (const auto &key : keys) {
             request.setRawHeader(key.toLocal8Bit(), headers[key].toLocal8Bit());
+        }
     }
 
     reply = manager->get(request);
@@ -82,7 +87,6 @@ void FMH::Downloader::getArray(const QUrl &fileURL, const QMap<QString, QString>
         }
 
         default: {
-            qDebug() << reply->errorString();
             emit this->warning(reply->errorString());
         }
         }
@@ -96,7 +100,6 @@ void FMH::Downloader::getArray(const QUrl &fileURL, const QMap<QString, QString>
 
 void FMH::Downloader::onDownloadProgress(qint64 bytesRead, qint64 bytesTotal)
 {
-    qDebug() << "DOWNLOAD PROGRESS" << ((bytesRead * 100) / bytesTotal);
     emit this->progress((bytesRead * 100) / bytesTotal);
 }
 

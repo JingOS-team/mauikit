@@ -1,6 +1,7 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
  * Copyright (C) 2018  Camilo Higuita <email>
+ * Copyright (C) 2021  Zhang He Gang <zhanghegang@jingos.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,19 +62,22 @@ struct NavHistory {
 
     QUrl getPosteriorPath()
     {
-        if (this->post_history.isEmpty())
+        if (this->post_history.isEmpty()) {
             return QUrl();
+        }
 
         return this->post_history.takeLast();
     }
 
     QUrl getPreviousPath()
     {
-        if (this->prev_history.isEmpty())
+        if (this->prev_history.isEmpty()) {
             return QUrl();
+        }
 
-        if (this->prev_history.length() < 2)
+        if (this->prev_history.length() < 2) {
             return this->prev_history.at(0);
+        }
 
         this->post_history.append(this->prev_history.takeLast());
 
@@ -113,7 +117,7 @@ class FMList : public MauiList
 
     Q_PROPERTY(QUrl parentPath READ getParentPath NOTIFY pathChanged)
 
-    Q_PROPERTY(Qt::SortOrder sortOrder READ getSortOrder WRITE setSortOrder NOTIFY sortOrderChanged)//add by hjy
+    Q_PROPERTY(Qt::SortOrder sortOrder READ getSortOrder WRITE setSortOrder NOTIFY sortOrderChanged)
 
 public:
     enum SORTBY : uint_fast8_t {
@@ -193,9 +197,9 @@ public:
      */
     void setSortBy(const FMList::SORTBY &key);
 
-    void setSortOrder(const Qt::SortOrder &sortOrder);//add by hjy
+    void setSortOrder(const Qt::SortOrder &sortOrder);
 
-    Qt::SortOrder getSortOrder() const;//add by hjy
+    Qt::SortOrder getSortOrder() const;
 
     /**
      * @brief componentComplete
@@ -323,11 +327,11 @@ public:
      */
     void setCloudDepth(const int &value);
 
-       /**
-     * @brief getStatus
-     * Get the current status of the current path
-     * @return
-     */
+    /**
+    * @brief getStatus
+    * Get the current status of the current path
+    * @return
+    */
     PathStatus getStatus() const;
 
 private:
@@ -339,6 +343,7 @@ private:
     void assignList(const FMH::MODEL_LIST &list);
     void appendToList(const FMH::MODEL_LIST &list);
     void sortList();
+    FMH::MODEL_LIST sortList(FMH::MODEL_LIST currentList);
     void search(const QString &query, const QUrl &path, const bool &hidden = false, const bool &onlyDirs = false, const QStringList &filters = QStringList());
     void filterContent(const QString &query, const QUrl &path);
     void setStatus(const PathStatus &status);
@@ -363,7 +368,7 @@ private:
 
     NavHistory m_navHistory;
 
-    Qt::SortOrder m_sortOrder = Qt::AscendingOrder;//add by hjy 升降序
+    Qt::SortOrder m_sortOrder = Qt::AscendingOrder;
 
 public slots:
 
@@ -373,7 +378,7 @@ public slots:
      */
     void refresh();
 
-    void refreshItem(const int index, const QUrl &path);//add by hjy
+    void refreshItem(const int index, const QUrl &path);
 
     /**
      * @brief createDir
@@ -398,6 +403,8 @@ public slots:
      * List of files
      */
     void cutInto(const QStringList &urls);
+
+    void updateTag(const QStringList &urls);
 
     /**
      * @brief setDirIcon
@@ -425,14 +432,14 @@ public slots:
      * The information of the model where the search is going to be performed
      */
     void search(const QString &query, const FMList *currentFMList);
-    
+
     /**
      * @brief previousPath
      * Inmediate previous path
      * @return
      */
     const QUrl previousPath();
-    
+
     /**
      * @brief posteriorPath
      * Inmediate posterior path
@@ -458,7 +465,7 @@ signals:
 
     void searchResultReady();
 
-    void sortOrderChanged();//add by hjy
+    void sortOrderChanged();
 };
 
 #endif // FMLIST_H

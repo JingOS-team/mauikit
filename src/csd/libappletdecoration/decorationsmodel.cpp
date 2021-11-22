@@ -139,10 +139,10 @@ QVariant DecorationsModel::data(const QModelIndex &index, int role) const
 QHash<int, QByteArray> DecorationsModel::roleNames() const
 {
     QHash<int, QByteArray> roles({{Qt::DisplayRole, QByteArrayLiteral("display")},
-                                  {Qt::UserRole + 4, QByteArrayLiteral("plugin")},
-                                  {Qt::UserRole + 5, QByteArrayLiteral("theme")},
-                                  {Qt::UserRole + 6, QByteArrayLiteral("isAuroraeTheme")},
-                                  {Qt::UserRole + 7, QByteArrayLiteral("configureable")}});
+        {Qt::UserRole + 4, QByteArrayLiteral("plugin")},
+        {Qt::UserRole + 5, QByteArrayLiteral("theme")},
+        {Qt::UserRole + 6, QByteArrayLiteral("isAuroraeTheme")},
+        {Qt::UserRole + 7, QByteArrayLiteral("configureable")}});
     return roles;
 }
 
@@ -296,7 +296,9 @@ void DecorationsModel::kwinChanged(const QString &filename)
 
 bool DecorationsModel::isAurorae(const QString &plugin, const QString &theme)
 {
-    auto it = std::find_if(m_plugins.cbegin(), m_plugins.cend(), [plugin, theme](const Data &d) { return d.pluginName == plugin && d.themeName == theme; });
+    auto it = std::find_if(m_plugins.cbegin(), m_plugins.cend(), [plugin, theme](const Data &d) {
+        return d.pluginName == plugin && d.themeName == theme;
+    });
 
     if (it == m_plugins.cend()) {
         return false;
@@ -307,7 +309,9 @@ bool DecorationsModel::isAurorae(const QString &plugin, const QString &theme)
 
 bool DecorationsModel::decorationExists(const QString &plugin, const QString &theme)
 {
-    auto it = std::find_if(m_plugins.cbegin(), m_plugins.cend(), [plugin, theme](const Data &d) { return d.pluginName == plugin && d.themeName == theme; });
+    auto it = std::find_if(m_plugins.cbegin(), m_plugins.cend(), [plugin, theme](const Data &d) {
+        return d.pluginName == plugin && d.themeName == theme;
+    });
 
     if (it == m_plugins.cend()) {
         return false;
@@ -318,7 +322,9 @@ bool DecorationsModel::decorationExists(const QString &plugin, const QString &th
 
 bool DecorationsModel::pluginExists(const QString &plugin)
 {
-    auto it = std::find_if(m_plugins.cbegin(), m_plugins.cend(), [plugin](const Data &d) { return d.pluginName == plugin; });
+    auto it = std::find_if(m_plugins.cbegin(), m_plugins.cend(), [plugin](const Data &d) {
+        return d.pluginName == plugin;
+    });
 
     if (it == m_plugins.cend()) {
         return false;
@@ -329,7 +335,9 @@ bool DecorationsModel::pluginExists(const QString &plugin)
 
 QModelIndex DecorationsModel::findDecoration(const QString &pluginName, const QString &themeName) const
 {
-    auto it = std::find_if(m_plugins.cbegin(), m_plugins.cend(), [pluginName, themeName](const Data &d) { return d.pluginName == pluginName && d.themeName == themeName; });
+    auto it = std::find_if(m_plugins.cbegin(), m_plugins.cend(), [pluginName, themeName](const Data &d) {
+        return d.pluginName == pluginName && d.themeName == themeName;
+    });
 
     if (it == m_plugins.cend()) {
         return QModelIndex();

@@ -53,14 +53,17 @@ void PathList::setList()
     } else {
         const int index = [&]() -> int {
             int i = 0;
-            for (const auto &item : qAsConst(list)) {
+            for (const auto &item : qAsConst(list))
+            {
                 if (i < paths.size()) {
                     if (item[FMH::MODEL_KEY::PATH] != paths[i][FMH::MODEL_KEY::PATH]) {
                         break;
-                    } else
+                    } else {
                         i++;
-                } else
+                    }
+                } else {
                     break;
+                }
             }
             return i;
         }();
@@ -81,15 +84,14 @@ void PathList::setList()
 
 void PathList::setPath(const QString &path)
 {
-    if (path == this->m_path)
+    if (path == this->m_path) {
         return;
+    }
 
     this->m_path = path;
     this->setList();
 
     emit this->pathChanged();
-
-    qDebug() << this->list;
 }
 
 FMH::MODEL_LIST PathList::splitPath(const QString &path)
@@ -98,8 +100,9 @@ FMH::MODEL_LIST PathList::splitPath(const QString &path)
 
     QString _url = path;
 
-    while (_url.endsWith("/"))
+    while (_url.endsWith("/")) {
         _url.chop(1);
+    }
 
     _url += "/";
 
@@ -109,11 +112,11 @@ FMH::MODEL_LIST PathList::splitPath(const QString &path)
         _url = QString(_url).left(_url.lastIndexOf("/"));
         auto label = QString(_url).right(_url.length() - _url.lastIndexOf("/") - 1);
 
-        if (label.isEmpty())
+        if (label.isEmpty()) {
             continue;
+        }
 
-        if (label.contains(":") && i == count - 1) // handle the protocol
-        {
+        if (label.contains(":") && i == count - 1) { // handle the protocol
             res << FMH::MODEL {{FMH::MODEL_KEY::LABEL, "/"}, {FMH::MODEL_KEY::PATH, _url + "///"}};
             break;
         }

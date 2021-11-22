@@ -45,8 +45,9 @@ public:
      */
     inline void setTitle(const QString &title)
     {
-        if (title == m_title)
+        if (title == m_title) {
             return;
+        }
 
         m_title = title;
         emit titleChanged();
@@ -58,8 +59,9 @@ public:
      */
     inline void setIconName(const QString &iconName)
     {
-        if (iconName == m_iconName)
+        if (iconName == m_iconName) {
             return;
+        }
 
         m_iconName = iconName;
         emit iconNameChanged();

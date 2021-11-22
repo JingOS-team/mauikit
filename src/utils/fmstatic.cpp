@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2021 Beijing Jingling Information System Technology Co., Ltd. All rights reserved.
+ *
+ * Authors:
+ * Zhang He Gang <zhanghegang@jingos.com>
+ *
+ */
 #include "fmstatic.h"
 #include "utils.h"
 #include "platform.h"
@@ -24,6 +31,16 @@
 #include "platforms/android/mauiandroid.h"
 #endif
 
+
+#include <QObject>
+#include <QtGlobal>
+#include <QCoreApplication>
+#include <QThread>
+#include <QMimeDatabase>
+#include <QNetworkInterface>
+
+QMap<QString, QHash<QString,QString>> FMStatic::tagUrlMap;
+
 FMStatic::FMStatic(QObject *parent)
     : QObject(parent)
 {}
@@ -33,8 +50,9 @@ FMH::MODEL_LIST FMStatic::packItems(const QStringList &items, const QString &typ
     FMH::MODEL_LIST data;
 
     for (const auto &path : items) {
-        if (QUrl(path).isLocalFile() && !FMH::fileExists(path))
+        if (QUrl(path).isLocalFile() && !FMH::fileExists(path)) {
             continue;
+        }
 
         auto model = FMH::getFileInfoModel(path);
         model.insert(FMH::MODEL_KEY::TYPE, type);
@@ -63,8 +81,9 @@ FMH::MODEL_LIST FMStatic::search(const QString &query, const QUrl &path, const b
 
         dirFilter = (onlyDirs ? QDir::AllDirs | QDir::NoDotDot | QDir::NoDot : QDir::Files | QDir::AllDirs | QDir::NoDotDot | QDir::NoDot);
 
-        if (hidden)
+        if (hidden) {
             dirFilter = dirFilter | QDir::Hidden | QDir::System;
+        }
 
         QDirIterator it(path.toLocalFile(), filters, dirFilter, QDirIterator::Subdirectories);
         while (it.hasNext()) {
@@ -73,8 +92,9 @@ FMH::MODEL_LIST FMStatic::search(const QString &query, const QUrl &path, const b
                 content << FMH::getFileInfoModel(QUrl::fromLocalFile(url));
             }
         }
-    } else
+    } else {
         qWarning() << "Search path does not exists" << path;
+    }
 
     return content;
 }
@@ -132,7 +152,7 @@ bool FMStatic::fileExists(const QUrl &path)
     return FMH::fileExists(path);
 }
 
-QString FMStatic::fileDir(const QUrl &path) // the directory path of the file
+QString FMStatic::fileDir(const QUrl &path)   // the directory path of the file
 {
     return FMH::fileDir(path);
 }
@@ -153,12 +173,20 @@ QString FMStatic::formatSize(const int &size)
     return locale.formattedDataSize(size);
 }
 
+QString FMStatic::formatSizeForQulonglong(const qulonglong &size)
+{
+    const QLocale locale;
+    return locale.formattedDataSize(size);
+}
+
+
 QString FMStatic::formatDate(const QString &dateStr, const QString &format, const QString &initFormat)
 {
-    if (initFormat.isEmpty())
+    if (initFormat.isEmpty()) {
         return  QDateTime::fromString(dateStr, Qt::TextDate).toString(format);
-    else
+    } else {
         return QDateTime::fromString(dateStr, initFormat).toString(format);
+    }
 }
 
 QString FMStatic::formatTime(const qint64 &value)
@@ -167,8 +195,9 @@ QString FMStatic::formatTime(const qint64 &value)
     if (value) {
         QTime time((value / 3600) % 60, (value / 60) % 60, value % 60, (value * 1000) % 1000);
         QString format = "mm:ss";
-        if (value > 3600)
+        if (value > 3600) {
             format = "hh:mm:ss";
+        }
         tStr = time.toString(format);
     }
 
@@ -186,20 +215,23 @@ static bool copyRecursively(QString sourceFolder, QString destFolder)
     bool success = false;
     QDir sourceDir(sourceFolder);
 
-    if (!sourceDir.exists())
+    if (!sourceDir.exists()) {
         return false;
+    }
 
     QDir destDir(destFolder);
-    if (!destDir.exists())
+    if (!destDir.exists()) {
         destDir.mkdir(destFolder);
+    }
 
     QStringList files = sourceDir.entryList(QDir::Files);
     for (int i = 0; i < files.count(); i++) {
         QString srcName = sourceFolder + QDir::separator() + files[i];
         QString destName = destFolder + QDir::separator() + files[i];
         success = QFile::copy(srcName, destName);
-        if (!success)
+        if (!success) {
             return false;
+        }
     }
 
     files.clear();
@@ -208,8 +240,9 @@ static bool copyRecursively(QString sourceFolder, QString destFolder)
         QString srcName = sourceFolder + QDir::separator() + files[i];
         QString destName = destFolder + QDir::separator() + files[i];
         success = copyRecursively(srcName, destName);
-        if (!success)
+        if (!success) {
             return false;
+        }
     }
 
     return true;
@@ -229,27 +262,37 @@ bool FMStatic::copy(const QList<QUrl> &urls, const QUrl &destinationDir)
         } else {
             const auto _destination = QUrl(destinationDir.toString() + "/" + FMH::getFileInfoModel(url)[FMH::MODEL_KEY::LABEL]);
             QDir destDir(_destination.toLocalFile());
-            if (!destDir.exists())
+            if (!destDir.exists()) {
                 destDir.mkdir(_destination.toLocalFile());
+            }
 
-            if (!copyRecursively(url.toLocalFile(), _destination.toLocalFile()))
+            if (!copyRecursively(url.toLocalFile(), _destination.toLocalFile())) {
                 continue;
+            }
         }
     }
     return true;
 #else
-    // auto job = KIO::copy(urls, destinationDir);
     auto job = KIO::copy(urls, destinationDir, KIO::HideProgressInfo);
-    job->setAutoRename(true);//add by hjy 如果有重名文件 系统自动重命名
+    job->setAutoRename(true);
     job->start();
-
     return true;
 #endif
 }
 
+
 bool FMStatic::cut(const QList<QUrl> &urls, const QUrl &where)
 {
     return FMStatic::cut(urls, where, QString());
+}
+
+bool FMStatic::updateTag(const QList<QUrl> &urls, const QUrl &where)
+{
+    for (const auto &url : urls) {
+        QUrl where_ = QUrl(where.toString() + "/" + FMH::getFileInfoModel(url)[FMH::MODEL_KEY::LABEL]);
+        Tagging::getInstance()->updateUrl(url.toString(), where_.toString());
+    }
+    return true;
 }
 
 bool FMStatic::cut(const QList<QUrl> &urls, const QUrl &where, const QString &name)
@@ -257,10 +300,11 @@ bool FMStatic::cut(const QList<QUrl> &urls, const QUrl &where, const QString &na
 #if defined Q_OS_ANDROID || defined Q_OS_WIN32 || defined Q_OS_MACOS || defined Q_OS_IOS
     for (const auto &url : qAsConst(urls)) {
         QUrl _where;
-        if (name.isEmpty())
+        if (name.isEmpty()) {
             _where = QUrl(where.toString() + "/" + FMH::getFileInfoModel(url)[FMH::MODEL_KEY::LABEL]);
-        else
+        } else {
             _where = QUrl(where.toString() + "/" + name);
+        }
 
         QFile file(url.toLocalFile());
         file.rename(_where.toLocalFile());
@@ -271,18 +315,20 @@ bool FMStatic::cut(const QList<QUrl> &urls, const QUrl &where, const QString &na
     }
 #else
     QUrl _where = where;
-    if (!name.isEmpty())
+    if (!name.isEmpty()) {
         _where = QUrl(where.toString() + "/" + name);
+    }
 
     auto job = KIO::move(urls, _where, KIO::HideProgressInfo);
-    job->setAutoRename(true);//add by hjy 如果有重名文件 系统自动重命名
+    job->setAutoRename(true);
     job->start();
 
 #ifdef COMPONENT_TAGGING
     for (const auto &url : urls) {
         QUrl where_ = QUrl(where.toString() + "/" + FMH::getFileInfoModel(url)[FMH::MODEL_KEY::LABEL]);
-        if (!name.isEmpty())
+        if (!name.isEmpty()) {
             where_ = QUrl(where.toString() + "/" + name);
+        }
 
         Tagging::getInstance()->updateUrl(url.toString(), where_.toString());
     }
@@ -302,22 +348,17 @@ bool FMStatic::removeFiles(const QList<QUrl> &urls)
 
 #if defined Q_OS_ANDROID || defined Q_OS_WIN32 || defined Q_OS_MACOS || defined Q_OS_IOS
 
-    qDebug() << "ASKED GTO DELETE FILES" << urls;
     for (const auto &url : qAsConst(urls)) {
-        qDebug() << "@ Want to remove files << " << url.toLocalFile();
-
         if (isDir(url)) {
-            qDebug() << "Want to remove dir << " << url.toLocalFile();
             FMStatic::removeDir(url);
         } else {
-            qDebug() << "Want to remove files << " << url.toLocalFile();
             QFile::remove(url.toLocalFile());
         }
     }
     return true;
 #else
     auto job = KIO::del(urls, KIO::HideProgressInfo);
-    job->start();
+    job->exec();
     return true;
 #endif
 }
@@ -336,7 +377,7 @@ void FMStatic::emptyTrash()
 {
 #if defined Q_OS_LINUX && !defined Q_OS_ANDROID
     auto job = KIO::emptyTrash();
-    job->start();
+    job->exec();
 #endif
 }
 
@@ -344,7 +385,6 @@ bool FMStatic::removeDir(const QUrl &path)
 {
     bool result = true;
     QDir dir(path.toLocalFile());
-    qDebug() << "TRYING TO REMOVE DIR" << path << path.toLocalFile();
     if (dir.exists()) {
         Q_FOREACH (QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden | QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
             if (info.isDir()) {
@@ -397,7 +437,6 @@ bool FMStatic::createSymlink(const QUrl &path, const QUrl &where)
 #if defined Q_OS_ANDROID || defined Q_OS_WIN32 || defined Q_OS_MACOS || defined Q_OS_IOS
     return QFile::link(path.toLocalFile(), where.toLocalFile() + "/" + QFileInfo(path.toLocalFile()).fileName());
 #else
-    qDebug() << "trying to create symlink" << path << where;
     const auto job = KIO::link({path}, where);
     job->start();
     return true;
@@ -407,22 +446,14 @@ bool FMStatic::createSymlink(const QUrl &path, const QUrl &where)
 bool FMStatic::openUrl(const QUrl &url)
 {
     Platform::instance()->openUrl(url);
-//#ifdef Q_OS_ANDROID
-//    MAUIAndroid::openUrl(url.toString());
-//    return true;
-//#elif defined Q_OS_LINUX
-//    //     return QDesktopServices::openUrl(QUrl::fromUserInput(url));
-//    return KRun::runUrl(url, FMH::getFileInfoModel(url)[FMH::MODEL_KEY::MIME], nullptr, false, KRun::RunFlag::DeleteTemporaryFiles);
-//#elif defined Q_OS_WIN32 || defined Q_OS_MACOS || defined Q_OS_IOS
-//    return QDesktopServices::openUrl(url);
-//#endif
     return true;
 }
 
 void FMStatic::openLocation(const QStringList &urls)
 {
-    for (const auto &url : qAsConst(urls))
+    for (const auto &url : qAsConst(urls)) {
         QDesktopServices::openUrl(QUrl::fromLocalFile(QFileInfo(url).dir().absolutePath()));
+    }
 }
 
 const QVariantMap FMStatic::dirConf(const QUrl &path)
@@ -442,8 +473,9 @@ bool FMStatic::checkFileType(const int &type, const QString &mimeTypeName)
 
 bool FMStatic::toggleFav(const QUrl &url)
 {
-    if (FMStatic::isFav(url))
+    if (FMStatic::isFav(url)) {
         return FMStatic::unFav(url);
+    }
 
     return FMStatic::fav(url);
 }
@@ -451,14 +483,24 @@ bool FMStatic::toggleFav(const QUrl &url)
 bool FMStatic::fav(const QUrl &url)
 {
 #ifdef COMPONENT_TAGGING
-    return Tagging::getInstance()->tagUrl(url.toString(), "fav", "#e91e63");
+    if (Tagging::getInstance()->tagUrl(url.toString(), "fav", "#e91e63")) {
+        FMStatic::updateTagUrl();
+        return true;
+    } else {
+        return false;
+    }
 #endif
 }
 
 bool FMStatic::unFav(const QUrl &url)
 {
 #ifdef COMPONENT_TAGGING
-    return Tagging::getInstance()->removeUrlTag(url.toString(), "fav");
+    if (Tagging::getInstance()->removeUrlTag(url.toString(), "fav")) {
+        FMStatic::updateTagUrl();
+        return true;
+    } else {
+        return false;
+    }
 #endif
 }
 
@@ -472,9 +514,9 @@ bool FMStatic::isFav(const QUrl &url, const bool &strict)
 static bool doNameFilter(const QString &name, const QStringList &filters)
 {
     const auto filtersAccumulate = std::accumulate(filters.constBegin(), filters.constEnd(), QVector<QRegExp> {}, [](QVector<QRegExp> &res, const QString &filter) -> QVector<QRegExp> {
-         res.append(QRegExp(filter, Qt::CaseInsensitive, QRegExp::Wildcard));
-         return res;
-     });
+        res.append(QRegExp(filter, Qt::CaseInsensitive, QRegExp::Wildcard));
+        return res;
+    });
 
     for (const auto &filter : filtersAccumulate) {
         if (filter.exactMatch(name)) {
@@ -491,14 +533,15 @@ QList<QUrl> FMStatic::getTagUrls(const QString &tag, const QStringList &filters,
 
     std::function<bool(QVariantMap &item)> filter = nullptr;
 
-    if(!filters.isEmpty())
+    if (!filters.isEmpty())
         filter = [filters](QVariantMap &item) -> bool { return doNameFilter(FMH::mapValue(item, FMH::MODEL_KEY::URL), filters); };
 
     const auto tagUrls = Tagging::getInstance()->getUrls(tag, strict, limit, mime, filter);
     for (const auto &data : tagUrls) {
         const auto url = QUrl(data.toMap()[FMH::MODEL_NAME[FMH::MODEL_KEY::URL]].toString());
-        if (url.isLocalFile() && !FMH::fileExists(url))
+        if (url.isLocalFile() && !FMH::fileExists(url)) {
             continue;
+        }
         urls << url;
     }
 #endif
@@ -510,18 +553,18 @@ FMH::MODEL_LIST FMStatic::getTags(const int &limit)
     Q_UNUSED(limit);
     FMH::MODEL_LIST data;
 #ifdef COMPONENT_TAGGING
-        const auto tags = Tagging::getInstance()->getAllTags(false);
-        for (const auto &tag : tags) {
-            const QVariantMap item = tag.toMap();
-            const auto label = item.value(FMH::MODEL_NAME[FMH::MODEL_KEY::TAG]).toString();
+    const auto tags = Tagging::getInstance()->getAllTags(false);
+    for (const auto &tag : tags) {
+        const QVariantMap item = tag.toMap();
+        const auto label = item.value(FMH::MODEL_NAME[FMH::MODEL_KEY::TAG]).toString();
 
-            data << FMH::MODEL {{FMH::MODEL_KEY::PATH, FMH::PATHTYPE_URI[FMH::PATHTYPE_KEY::TAGS_PATH] + label},
-                                {FMH::MODEL_KEY::ICON, item.value(FMH::MODEL_NAME[FMH::MODEL_KEY::ICON], "tag").toString()},
-                                {FMH::MODEL_KEY::MODIFIED, QDateTime::fromString(item.value(FMH::MODEL_NAME[FMH::MODEL_KEY::ADDDATE]).toString(), Qt::TextDate).toString()},
-                                {FMH::MODEL_KEY::IS_DIR, "true"},
-                                {FMH::MODEL_KEY::LABEL, label},
-                                {FMH::MODEL_KEY::TYPE, FMH::PATHTYPE_LABEL[FMH::PATHTYPE_KEY::TAGS_PATH]}};
-        }
+        data << FMH::MODEL {{FMH::MODEL_KEY::PATH, FMH::PATHTYPE_URI[FMH::PATHTYPE_KEY::TAGS_PATH] + label},
+            {FMH::MODEL_KEY::ICON, item.value(FMH::MODEL_NAME[FMH::MODEL_KEY::ICON], "tag").toString()},
+            {FMH::MODEL_KEY::MODIFIED, QDateTime::fromString(item.value(FMH::MODEL_NAME[FMH::MODEL_KEY::ADDDATE]).toString(), Qt::TextDate).toString()},
+            {FMH::MODEL_KEY::IS_DIR, "true"},
+            {FMH::MODEL_KEY::LABEL, label},
+            {FMH::MODEL_KEY::TYPE, FMH::PATHTYPE_LABEL[FMH::PATHTYPE_KEY::TAGS_PATH]}};
+    }
 #endif
 
     return data;
@@ -555,30 +598,68 @@ FMH::MODEL_LIST FMStatic::getUrlTags(const QUrl &url)
 bool FMStatic::urlTagExists(const QUrl &url, const QString tag)
 {
 #ifdef COMPONENT_TAGGING
-    return Tagging::getInstance()->urlTagExists(url.toString(), tag, false);
+    QHash<QString,QString> tagUrlList = FMStatic::tagUrlMap[tag];
+    bool isTagExists = tagUrlList.contains(url.toString());
+//    for (int i = 0; i < tagUrlList.size(); i++) {
+//        if (url == tagUrlList.at(i)) {
+//            isTagExists = true;
+//            break;
+//        }
+//    }
+    return isTagExists;
 #endif
 }
 
 bool FMStatic::addTagToUrl(const QString tag, const QUrl &url)
 {
 #ifdef COMPONENT_TAGGING
-    return Tagging::getInstance()->tagUrl(url.toString(), tag);
+    if (Tagging::getInstance()->tagUrl(url.toString(), tag)) {
+        FMStatic::updateTagUrl(tag);
+        return true;
+    } else {
+        return false;
+    }
 #endif
+}
+
+bool FMStatic::addTags(const QString tag,const QList<QString> &urls)
+{
+    if (Tagging::getInstance()->addUrlTags(urls, tag)) {
+        FMStatic::updateTagUrl(tag);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool FMStatic::removeTagToUrl(const QString tag, const QUrl &url)
 {
 #ifdef COMPONENT_TAGGING
-    return Tagging::getInstance()->removeUrlTag(url.toString(), tag);
+    if (Tagging::getInstance()->removeUrlTag(url.toString(), tag)) {
+        FMStatic::updateTagUrl(tag);
+        return true;
+    } else {
+        return false;
+    }
 #endif
+}
+
+bool FMStatic::removeTags(const QString tag,const QList<QString> &urls)
+{
+    if (Tagging::getInstance()->removeUrlTags(urls, tag)) {
+        FMStatic::updateTagUrl();
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void FMStatic::bookmark(const QUrl &url)
 {
 #if defined Q_OS_ANDROID || defined Q_OS_WIN32 || defined Q_OS_MACOS || defined Q_OS_IOS
-    // do android stuff until cmake works with android
-    if(isDefaultPath(url.toString()))
+    if (isDefaultPath(url.toString())) {
         return;
+    }
 
     auto bookmarks = UTIL::loadSettings("BOOKMARKS", "PREFERENCES", {}, true).toStringList();
     bookmarks << url.toString();
@@ -592,4 +673,80 @@ void FMStatic::bookmark(const QUrl &url)
 QStringList FMStatic::nameFilters(const int &type)
 {
     return FMH::FILTER_LIST[static_cast<FMH::FILTER_TYPE>(type)];
+}
+
+void FMStatic::updateTagUrl(QString userTag)
+{
+    if (userTag != "") {
+       QHash<QString,QString> tagUrlList;
+       QVariantList mapList = Tagging::getInstance()->getUrls(userTag);
+       for (int j = 0; j < mapList.size(); j++) {
+           QVariant qVariant = mapList[j];
+           QMap<QString, QVariant>	tagMap = qVariant.toMap();
+           QString tagUrl = tagMap["url"].toString();
+           if (!tagUrl.isEmpty()) {
+               tagUrlList.insert(tagUrl,userTag);
+           }
+       }
+       tagUrlMap.remove(userTag);
+       tagUrlMap[userTag] = tagUrlList;
+       return;
+    }
+    FMStatic::tagUrlMap.clear();
+    QHash<QString,QString> tagUrlList;
+
+    QVariantList mapList;
+    for (int i = 0; i < 8; i++) {
+        QString tag = "tag" + QString::number(i) + "_jingos";
+        mapList = Tagging::getInstance()->getUrls(tag);
+        for (int j = 0; j < mapList.size(); j++) {
+            QVariant qVariant = mapList[j];
+            QMap<QString, QVariant>	tagMap = qVariant.toMap();
+            QString tagUrl = tagMap["url"].toString();
+            if (!tagUrl.isEmpty()) {
+//                tagUrlList << tagUrl;
+                tagUrlList.insert(tagUrl,tag);
+            }
+        }
+        tagUrlMap[tag] = tagUrlList;
+        mapList.clear();
+        tagUrlList.clear();
+    }
+
+    mapList = Tagging::getInstance()->getUrls("recents_jingos");
+    for (int j = 0; j < mapList.size(); j++) {
+        QVariant qVariant = mapList[j];
+        QMap<QString, QVariant>	tagMap = qVariant.toMap();
+        QString tagUrl = tagMap["url"].toString();
+        if (!tagUrl.isEmpty()) {
+            tagUrlList.insert(tagUrl,"recents_jingos");
+        }
+    }
+    tagUrlMap["recents_jingos"] = tagUrlList;
+    mapList.clear();
+    tagUrlList.clear();
+
+    mapList = Tagging::getInstance()->getUrls("collection_jingos");
+    for (int j = 0; j < mapList.size(); j++) {
+        QVariant qVariant = mapList[j];
+        QMap<QString, QVariant>	tagMap = qVariant.toMap();
+        QString tagUrl = tagMap["url"].toString();
+        if (!tagUrl.isEmpty()) {
+            tagUrlList.insert(tagUrl,"collection_jingos");
+        }
+    }
+    tagUrlMap["collection_jingos"] = tagUrlList;
+    mapList.clear();
+    tagUrlList.clear();
+
+    mapList = Tagging::getInstance()->getUrls("fav");
+    for (int j = 0; j < mapList.size(); j++) {
+        QVariant qVariant = mapList[j];
+        QMap<QString, QVariant>	tagMap = qVariant.toMap();
+        QString tagUrl = tagMap["url"].toString();
+        if (!tagUrl.isEmpty()) {
+           tagUrlList.insert(tagUrl,"fav");
+        }
+    }
+    tagUrlMap["fav"] = tagUrlList;
 }
